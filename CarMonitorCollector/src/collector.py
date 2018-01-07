@@ -1,4 +1,4 @@
-#! /usr/bin/python
+﻿#! /usr/bin/python
 # 
 # Author: Patrick Schmidt <patrick@ealp-net.at>
 # License: Apache License, Version 2.0
@@ -7,6 +7,7 @@ import time
 import gpsd
 import Queue
 import json
+import os
 import paho.mqtt.client as mqtt
 import tracker
 
@@ -55,16 +56,23 @@ class Collector():
 						
 							self.gpsData[key] = self.rawData.get(key)
 						
-						self.sendGpsData()
-						self.trackGpsData()
-						self.printGpsData()
-								
-					time.sleep(.5)
-				
+						if 'speed' in self.gpsData:
+							speed = float(self.gpsData['speed'])
+							
+							if speed > 0.5:
+								self.sendGpsData()
+								self.trackGpsData()
+								self.sleepTime = float(config.TRACK_TARGET_SPEED)/speed
+							else:
+								self.sleepTime = 1
+						else:
+							self.sleepTime = 1
+							
+						time.sleep(self.sleepTime)
+						self.writeConsoleOutput()
+							
 				except(AttributeError, KeyError):
-					pass 
-				
-				time.sleep(0.5)
+					pass
 		
 		except(KeyboardInterrupt, SystemExit):
 			print 'Stopping Collector...'
@@ -95,8 +103,24 @@ class Collector():
 	def trackGpsData(self):
 		self.trackerQueue.put(self.gpsData)
 	
-	def printGpsData(self):
-		print str(self.gpsData['time']) + ';' + str(self.gpsData['lon']) + ';' + str(self.gpsData['lat']) + ';' + str(self.gpsData['alt']) + ';' + str(self.gpsData['speed'])
+	def writeConsoleOutput(self):
+		os.system('clear')
+		print 'CarMonitor Collector'
+		print ''
+		print 'Collector'
+		print '  Target Speed: ' + str(config.TRACK_SPEED) + ' m/s'
+		print '  Wait Time: ' + str(self.sleepTime) + ' s'
+		print '  Track Queue: ' + str(self.trackerQueue.qsize()) + ' Items'
+		print ''
+		print 'GPS-Data:'
+		print '  Time: ' + str(self.gpsData['time'])
+		print '  Latitude: ' + str(self.gpsData['lat']) + u" \u00b0"
+		print '  Longitude: ' + str(self.gpsData['lon']) + u" \u00b0"
+		print '  Altitude: ' + str(self.gpsData['alt']) + ' m'
+		print '  Speed: ' + str(self.gpsData['speed']) + ' m/s'
+		print '  Track: '+ str(self.gpsData['track']) + u" \u00b0"
+		print '  Climb: ' + str(self.gpsData['climb']) + ' m/s'
+		print ''
 		
 if __name__ == '__main__':
 	Collector().run()
