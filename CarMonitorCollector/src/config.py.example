@@ -1,0 +1,10 @@
+# config.py
+SERVER_HOST = "mqqt-broker.example.org"
+SERVER_PORT = 1883
+SERVER_KEEPALIVE = 60
+SERVER_USER = 'user'
+SERVER_PASS = 'pass'
+CLIENT_ID = 'carname'
+TRACK_PATH = '/opt/carmonitor/log/'
+CACHE_PATH = '/opt/carmonitor/cache/'
+
