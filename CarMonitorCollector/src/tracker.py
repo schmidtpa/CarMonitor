@@ -12,7 +12,7 @@ import config
 
 class GpsTracker(threading.Thread):
 	
-	DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f%Z"
+	DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 	def __init__(self,inQueue):
 		threading.Thread.__init__(self)
@@ -62,16 +62,16 @@ class GpsTracker(threading.Thread):
 		self.trackFile.flush()
 		
 	def checkTrackFile(self):
-		now = datetime.strptime(str(self.trackData['time']),self.DATETIME_FORMAT).date()
+		now = datetime.datetime.strptime(str(self.trackData['time']),self.DATETIME_FORMAT).date()
 
 		if self.trackDate == None:
 			self.trackDate = now
 
 		if self.trackFile == None:
-			self.openTrackFile(self.trackDate)
+			self.openTrackFile()
 			
 		if self.trackDate != now:
-			self.openTrackFile(self.trackDate)
+			self.openTrackFile()
 			
 	def openTrackFile(self):
 		if self.trackFile != None:
