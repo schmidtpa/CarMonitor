@@ -41,25 +41,24 @@ class Collector():
 			self.client.loop_start()
 		
 			while True:
-				rawData = self.gpsdPoller.getGpsData()
+				self.rawData = self.gpsdPoller.getGpsData()
 				
 				try: 
-					if rawData.keys()[0] == 'epx':
-						gpsData = {}
+					if self.rawData.keys()[0] == 'epx':
+						self.gpsData = {}
 						
-						for key in rawData.keys():
+						for key in self.rawData.keys():
 							if key == 'class':
 								continue
 							if key == 'device':
 								continue
 						
-							gpsData[key] = rawData.get(key)
+							self.gpsData[key] = self.rawData.get(key)
 						
-						msg = json.dumps(gpsData)
-						self.client.publish("car/"+config.CLIENT_ID+"/position/", payload=msg, qos=1, retain=True)
-						self.trackerQueue.put(gpsData)
-						print str(gpsData['time']) + ';' + str(gpsData['lon']) + ';' + str(gpsData['lat']) + ';' + str(gpsData['alt']) + ';' + str(gpsData['speed'])
-						
+						self.sendGpsData()
+						self.trackGpsData()
+						self.printGpsData()
+								
 					time.sleep(.5)
 				
 				except(AttributeError, KeyError):
@@ -88,6 +87,16 @@ class Collector():
 		
 	def on_publish(self, client, userdata, mid):
 		print str(mid) + " reached the broker"
+		
+	def sendGpsData(self):
+		msg = json.dumps(self.gpsData)
+		self.client.publish("car/"+config.CLIENT_ID+"/position/", payload=msg, qos=1, retain=True)
+	
+	def trackGpsData(self):
+		self.trackerQueue.put(self.gpsData)
+	
+	def printGpsData(self):
+		print str(self.gpsData['time']) + ';' + str(self.gpsData['lon']) + ';' + str(self.gpsData['lat']) + ';' + str(self.gpsData['alt']) + ';' + str(self.gpsData['speed'])
 		
 if __name__ == '__main__':
 	Collector().run()
