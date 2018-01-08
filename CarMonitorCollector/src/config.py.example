@@ -5,5 +5,5 @@ SERVER_KEEPALIVE = 60
 SERVER_USER = 'user'
 SERVER_PASS = 'pass'
 CLIENT_ID = 'carname'
-CACHE_PATH = '/opt/carmonitor/cache/'
+MESSAGE_PATH = '/opt/carmonitor/messages/'
 TRACK_PATH = '/opt/carmonitor/log/'

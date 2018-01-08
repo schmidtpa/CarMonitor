@@ -4,26 +4,25 @@
 # License: Apache License, Version 2.0
 
 import time
-import gpsd
-import Queue
-import json
 import os
+import json
+
 import paho.mqtt.client as mqtt
-import tracker
+import gpsd
+import tracking
+import persistence
 
 import config
 
 class Collector():
 
 	def __init__(self):
-		self.trackerQueue = Queue.Queue()
-		
-		self.gpsdPoller = gpsd.GpsdPoller()
-		self.gpsTracker = tracker.GpsTracker(self.trackerQueue)
+		self.poller = gpsd.GpsdPoller()
+		self.tracking = tracking.FileTracking()
+		self.persistence = persistence.FilePersistence()
 		
 		self.client = mqtt.Client(client_id=config.CLIENT_ID, clean_session=True, protocol=mqtt.MQTTv311, transport="tcp")
-		self.client.username_pw_set(config.SERVER_USER, config.SERVER_PASS)
-		
+		self.client.username_pw_set(config.SERVER_USER, config.SERVER_PASS)	
 		self.client.on_connect = self.on_connect
 		self.client.on_disconnect = self.on_disconnect
 		self.client.on_publish = self.on_publish
@@ -31,18 +30,20 @@ class Collector():
 	def run(self):
 		print 'Starting Collector...'
 		
-		if not self.gpsTracker.checkTrackPath():
+		if not self.tracking.checkTrackingPath():
+			print 'Aborting...'
+			
+		if not self.persistence.checkMessagePath():
 			print 'Aborting...'
 		
 		try: 
-			self.gpsdPoller.start()
-			self.gpsTracker.start()
+			self.poller.start()
 			
 			self.client.connect_async(config.SERVER_HOST, port=config.SERVER_PORT, keepalive=config.SERVER_KEEPALIVE)
 			self.client.loop_start()
 		
 			while True:
-				self.rawData = self.gpsdPoller.getGpsData()
+				self.rawData = self.poller.getGpsdData()
 				
 				try: 
 					if self.rawData.keys()[0] == 'epx':
@@ -56,7 +57,7 @@ class Collector():
 						
 							self.gpsData[key] = self.rawData.get(key)
 						
-						if 'speed' in self.gpsData:
+						if 'speed' in self.gpsData and 'time' in self.gpsData:
 							speed = float(self.gpsData['speed'])
 							
 							if speed > 0.5:
@@ -82,8 +83,8 @@ class Collector():
 			print 'Stopping Collector...'
 			self.client.loop_stop()
 			self.client.disconnect()
-			self.gpsTracker.join()
-			self.gpsdPoller.join()
+			self.tracking.close()
+			self.poller.join()
 		
 	def on_connect(self, client, userdata, flags, rc):
 		if rc == mqtt.CONNACK_ACCEPTED:
@@ -99,22 +100,13 @@ class Collector():
 		
 	def on_publish(self, client, userdata, mid):
 		print str(mid) + " reached the broker"
-
-	def saveMessage(self, key, msg):
-		pass
-	
-	def removeMessage(self, key):
-		pass
-		
-	def getMessageKeys(self):
-		pass
 	
 	def sendGpsData(self):
 		msg = json.dumps(self.gpsData)
 		self.client.publish("car/"+config.CLIENT_ID+"/position/", payload=msg, qos=1, retain=True)
 	
 	def trackGpsData(self):
-		self.trackerQueue.put(self.gpsData)
+		self.tracking.trackGpsdData(self.gpsData)
 	
 	def writeConsoleOutput(self):
 		os.system('clear')

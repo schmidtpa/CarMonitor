@@ -12,15 +12,15 @@ class GpsdPoller(threading.Thread):
 		threading.Thread.__init__(self)
 		self.stopRequest = threading.Event()
 		self.session = gps(mode=WATCH_ENABLE)
-		self.gpsData = None
+		self.gpsdData = None
 		
-	def getGpsData(self):
-		return self.gpsData
+	def getGpsdData(self):
+		return self.gpsdData
 		
 	def run(self):
 		try:
 			while not self.stopRequest.isSet():
-				self.gpsData = self.session.next()
+				self.gpsdData = self.session.next()
 		except StopIteration:
 			pass 
 			
