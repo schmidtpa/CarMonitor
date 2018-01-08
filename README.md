@@ -6,7 +6,7 @@ A webbased app shows the current position based on the data wich is retrieved fr
 ### Features
  - Reading GPS data from a GPS receiver through GPSD and Python
  - Local storage of gps tracking data saved per day
- - Transmission of the tracking data to an MQQT Broker
+ - Transmission of the tracking data to an MQTT Broker
  - Speed adaptive processing of the position data
 
 ### Planned Features
