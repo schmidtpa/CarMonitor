@@ -7,5 +7,3 @@ SERVER_PASS = 'pass'
 CLIENT_ID = 'carname'
 CACHE_PATH = '/opt/carmonitor/cache/'
 TRACK_PATH = '/opt/carmonitor/log/'
-TRACK_SPEED = 20 # m/s
-

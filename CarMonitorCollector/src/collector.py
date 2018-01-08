@@ -62,11 +62,15 @@ class Collector():
 							if speed > 0.5:
 								self.sendGpsData()
 								self.trackGpsData()
-								self.sleepTime = float(config.TRACK_TARGET_SPEED)/speed
+								
+								if speed < 20.0:
+									self.sleepTime = 20.0/speed
+								else:
+									self.sleepTime = 1.0
 							else:
-								self.sleepTime = 1
+								self.sleepTime = 1.0
 						else:
-							self.sleepTime = 1
+							self.sleepTime = 1.0
 							
 						time.sleep(self.sleepTime)
 						self.writeConsoleOutput()
