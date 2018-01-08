@@ -68,9 +68,9 @@ class Collector():
 								else:
 									self.sleepTime = 1.0
 							else:
-								self.sleepTime = 1.0
+								self.sleepTime = 2.5
 						else:
-							self.sleepTime = 1.0
+							self.sleepTime = 2.5
 							
 						time.sleep(self.sleepTime)
 						self.writeConsoleOutput()
@@ -99,7 +99,16 @@ class Collector():
 		
 	def on_publish(self, client, userdata, mid):
 		print str(mid) + " reached the broker"
+
+	def saveMessage(self, key, msg):
+		pass
+	
+	def removeMessage(self, key):
+		pass
 		
+	def getMessageKeys(self):
+		pass
+	
 	def sendGpsData(self):
 		msg = json.dumps(self.gpsData)
 		self.client.publish("car/"+config.CLIENT_ID+"/position/", payload=msg, qos=1, retain=True)
