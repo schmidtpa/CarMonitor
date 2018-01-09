@@ -9,7 +9,6 @@ import os
 
 class FileTracking():
 
-	DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 	FILE_ENDING = '.log'
 	DELIMITER = ';'
 
@@ -17,39 +16,39 @@ class FileTracking():
 		self.trackFile = None
 		self.trackDate = None
 		
-	def trackGpsdData(self, gpsdData):
-		self.checkTrackFile(gpsdData)
-		self.writeTrackLine(gpsdData)
+	def trackGpsMessage(self, gpsMessage):
+		self.checkTrackFile(gpsMessage)
+		self.writeTrackLine(gpsMessage)
 		
-	def writeTrackLine(self, gpsdData):
-		self.trackFile.write(str(gpsdData['time']))
+	def writeTrackLine(self, gpsMessage):
+		self.trackFile.write(str(gpsMessage.time.isoformat()))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsdData['mode']))
+		self.trackFile.write(str(gpsMessage.mode))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsdData['lon']))
+		self.trackFile.write(str(gpsMessage.lon))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsdData['lat']))
+		self.trackFile.write(str(gpsMessage.lat))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsdData['alt']))
+		self.trackFile.write(str(gpsMessage.alt))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsdData['track']))
+		self.trackFile.write(str(gpsMessage.track))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsdData['climb']))
+		self.trackFile.write(str(gpsMessage.climb))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsdData['speed']))
+		self.trackFile.write(str(gpsMessage.speed))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsdData['epx']))
+		self.trackFile.write(str(gpsMessage.epx))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsdData['epy']))
+		self.trackFile.write(str(gpsMessage.epy))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsdData['epv']))
+		self.trackFile.write(str(gpsMessage.epv))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsdData['ept']))
+		self.trackFile.write(str(gpsMessage.ept))
 		self.trackFile.write('\n')
 		self.trackFile.flush()
 	
-	def checkTrackFile(self, gpsdData):
-		now = datetime.datetime.strptime(str(gpsdData['time']),self.DATETIME_FORMAT).date()
+	def checkTrackFile(self, gpsMessage):
+		now = gpsMessage.time
 
 		if self.trackDate == None:
 			self.trackDate = now

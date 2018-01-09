@@ -29,16 +29,13 @@ class FilePersistence():
 	def removeMessage(self, key):
 		os.remove(self.getMessageFileName(key))
 		
-	def getMessageKeys(self, max = 10):
+	def getMessageKeys(self):
 		keys = []
 		
 		for file in os.listdir(config.MESSAGE_PATH):
 			if file.endswith(self.FILE_ENDING):
 				name, ext = os.path.splitext(file)
 				keys.append(name)
-				
-			if len(keys) >= max:
-				break
 				
 		return keys
 		

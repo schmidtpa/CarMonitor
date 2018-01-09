@@ -5,7 +5,6 @@
 
 import time
 import os
-import json
 
 import paho.mqtt.client as mqtt
 import gpsd
@@ -27,6 +26,8 @@ class Collector():
 		self.client.on_disconnect = self.on_disconnect
 		self.client.on_publish = self.on_publish
 		
+		self.messageIdCache = {}
+		
 	def run(self):
 		print 'Starting Collector...'
 		
@@ -43,39 +44,40 @@ class Collector():
 			self.client.loop_start()
 		
 			while True:
-				self.rawData = self.poller.getGpsdData()
+				gpsdData = self.poller.getGpsdData()
+				self.msg = None
 				
 				try: 
-					if self.rawData.keys()[0] == 'epx':
-						self.gpsData = {}
+					# check if gpsdData is an gpsMessage
+					if gpsdData.keys()[0] == 'epx':
+						self.msg = gpsd.GpsMessage(gpsdData)
 						
-						for key in self.rawData.keys():
-							if key == 'class':
-								continue
-							if key == 'device':
-								continue
+						# check if the car is driving
+						if self.msg.speed > 0.5:
 						
-							self.gpsData[key] = self.rawData.get(key)
-						
-						if 'speed' in self.gpsData and 'time' in self.gpsData:
-							speed = float(self.gpsData['speed'])
+							# Try to send message to mqtt broker
+							self.sendMessage(self.msg)
 							
-							if speed > 0.5:
-								self.sendGpsData()
-								self.trackGpsData()
-								
-								if speed < 20.0:
-									self.sleepTime = 20.0/speed
-								else:
-									self.sleepTime = 1.0
-							else:
-								self.sleepTime = 2.5
+							# Save message to file archive
+							self.trackMessage(self.msg)
+							
+							# Try to send 10 persistent messages
+							self.sendPersistentMessages(10)
+
+							# If speed < 20 m/s sleep for the time needed to drive 20m
+							# else sleep for one second if speed >= 20 m/s
+							if self.msg.speed < 20.0:
+								self.sleepTime = 20.0/self.msg.speed
+							else: 
+								self.sleepTime = 1.0
 						else:
-							self.sleepTime = 2.5
-							
-						time.sleep(self.sleepTime)
-						self.writeConsoleOutput()
-							
+							self.sleepTime = 2.5						
+					else:
+						self.sleepTime = 2.5
+						
+					time.sleep(self.sleepTime)
+					self.writeConsoleOutput()
+
 				except(AttributeError, KeyError):
 					pass
 		
@@ -85,6 +87,53 @@ class Collector():
 			self.client.disconnect()
 			self.tracking.close()
 			self.poller.join()
+			
+		
+	# Send message to MQTT broker
+	def sendMessage(self, msg):
+		payload = msg.getJsonMessage()
+		result, mid = self.client.publish("car/"+config.CLIENT_ID+"/position/", payload=payload, qos=1, retain=True)
+		msg.mid = mid
+		
+		# Save message to file system
+		self.messageIdCache[mid] = msg.id
+		self.persistence.putMessage(msg.id, msg)
+		
+	# Track message to file based archive
+	def trackMessage(self, msg):
+		self.tracking.trackGpsMessage(msg)
+		
+	# Try to send persistent messages if they are not in the messageCache
+	def sendPersistentMessages(self, max = 10):
+		counter = 0
+	
+		for key in self.persistence.getMessageKeys():
+			if key in self.messageCache.values():
+				continue # Ignore messages from current session
+			
+			msg = self.persistence.getMessage(key)
+			self.sendMessage(msg)
+			counter += 1
+			
+			if counter > max:
+				break
+			
+	def writeConsoleOutput(self):
+		if self.msg != None:
+			print 'Time: ' + self.msg.time.isoformat()
+			print 'Position: ' + str(self.msg.lat) + u" \u00b0, " + str(self.msg.lon) + u" \u00b0"
+			print 'Speed: ' + str(self.msg.speed) + ' m/s'
+		else
+			print 'Time: N/A'
+			print 'Position: N/A'
+			print 'Speed: N/A'
+			
+		if self.sleepTime != None:
+			print 'Sleep Time: ' + str(self.sleepTime) + ' s'
+		else:
+			print 'Sleep Time: N/A'
+		
+		print 'Message Cache: ' + str(len(self.messageCache)) + ' Items'
 		
 	def on_connect(self, client, userdata, flags, rc):
 		if rc == mqtt.CONNACK_ACCEPTED:
@@ -99,33 +148,10 @@ class Collector():
 			print "Disconnected from " + config.SERVER_HOST + ":" + str(config.SERVER_PORT)
 		
 	def on_publish(self, client, userdata, mid):
-		print str(mid) + " reached the broker"
-	
-	def sendGpsData(self):
-		msg = json.dumps(self.gpsData)
-		self.client.publish("car/"+config.CLIENT_ID+"/position/", payload=msg, qos=1, retain=True)
-	
-	def trackGpsData(self):
-		self.tracking.trackGpsdData(self.gpsData)
-	
-	def writeConsoleOutput(self):
-		os.system('clear')
-		print 'CarMonitor Collector'
-		print ''
-		print 'Collector'
-		print '  Target Speed: ' + str(config.TRACK_SPEED) + ' m/s'
-		print '  Wait Time: ' + str(self.sleepTime) + ' s'
-		print '  Track Queue: ' + str(self.trackerQueue.qsize()) + ' Items'
-		print ''
-		print 'GPS-Data:'
-		print '  Time: ' + str(self.gpsData['time'])
-		print '  Latitude: ' + str(self.gpsData['lat']) + u" \u00b0"
-		print '  Longitude: ' + str(self.gpsData['lon']) + u" \u00b0"
-		print '  Altitude: ' + str(self.gpsData['alt']) + ' m'
-		print '  Speed: ' + str(self.gpsData['speed']) + ' m/s'
-		print '  Track: '+ str(self.gpsData['track']) + u" \u00b0"
-		print '  Climb: ' + str(self.gpsData['climb']) + ' m/s'
-		print ''
+		if mid in self.messageCache:
+			self.persistence.removeMessage(self.messageIdCache[mid])
+			del self.messageIdCache[mid]
+			print 'Message '+ str(mid) + " reached the mqtt broker"
 		
 if __name__ == '__main__':
 	Collector().run()
