@@ -18,7 +18,6 @@ class FilePersistence():
 		msgFile = open(self.getMessageFileName(key), 'w')
 		msgFile.write(msg)
 		msgFile.close()
-		pass
 	
 	def getMessage(self, key):
 		msgFile = open(self.getMessageFileName(key), 'r')
