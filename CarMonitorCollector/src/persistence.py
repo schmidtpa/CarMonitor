@@ -14,32 +14,32 @@ class FilePersistence():
 	def __init__(self):
 		pass
 	
-	def putMessage(self, key, msg):
-		msgFile = open(self.getMessageFileName(key), 'w')
+	def putMessage(self, id, msg):
+		msgFile = open(self.getMessageFileName(id), 'w')
 		msgFile.write(msg)
 		msgFile.close()
 	
-	def getMessage(self, key):
-		msgFile = open(self.getMessageFileName(key), 'r')
-		msg = msgFile.readline()
+	def getMessage(self, id):
+		msgFile = open(self.getMessageFileName(id), 'r')
+		msg = msgFile.read().replace('\n', '')
 		msgFile.close()
 		return msg
 		
-	def removeMessage(self, key):
-		os.remove(self.getMessageFileName(key))
+	def removeMessage(self, id):
+		os.remove(self.getMessageFileName(id))
 		
-	def getMessageKeys(self):
-		keys = []
+	def getMessageIds(self):
+		ids = []
 		
 		for file in os.listdir(config.MESSAGE_PATH):
 			if file.endswith(self.FILE_ENDING):
 				name, ext = os.path.splitext(file)
-				keys.append(name)
+				ids.append(name)
 				
-		return keys
+		return ids
 		
-	def getMessageFileName(self, key):
-		return config.MESSAGE_PATH + '/' + key + self.FILE_ENDING
+	def getMessageFileName(self, id):
+		return config.MESSAGE_PATH + '/' + id + self.FILE_ENDING
 	
 	def checkMessagePath(self):	
 		if not os.path.exists(config.MESSAGE_PATH):
