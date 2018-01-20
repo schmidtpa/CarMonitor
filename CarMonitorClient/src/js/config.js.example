@@ -1,0 +1,3 @@
+var mapStart = [47.6, 13.783333];
+var serverHostname = 'mqqt-broker.example.org';
+var serverPort = 9001
