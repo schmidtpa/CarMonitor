@@ -3,96 +3,105 @@
 # Author: Patrick Schmidt <patrick@ealp-net.at>
 # License: Apache License, Version 2.0
 
-import time
 import os
-import Queue
+import time
+import datetime
+import json
+import paho.mqtt.client as mqtt
 
 import gpsd
 import tracking
-import communication
 
 import config
 
 class Collector():
 
+	DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
+
 	def __init__(self):
 		self.poller = gpsd.GpsdPoller()
 		self.tracking = tracking.FileTracking()
 		
-		self.sendQueue = Queue.Queue()
-		self.communication = communication.Communication(self.sendQueue)
+		self.client = mqtt.Client(config.CLIENT_ID, True)
+		self.client.tls_set(config.SERVER_CERT)
+		self.client.username_pw_set(config.SERVER_USER, config.SERVER_PASS)	
+		# self.client.will_set("car/"+config.CLIENT_ID+"/position", payload='{"online":false}', qos=1)
+		
+		self.client.on_connect = self.onConnect
+		self.client.on_disconnect = self.onDisconnect
+		self.client.on_publish = self.onPublish
+
+		self.gpsdData = None
+		self.gpsdTime = None
 		
 	def run(self):
-		print 'Starting Collector...'
+		print '[Collector] Starting...'
 		
 		if not self.tracking.checkTrackingPath():
-			print 'Aborting...'
+			print '[Collector] Aborting...'
 		
 		try: 
 			self.poller.start()
-			self.communication.start()
+			self.client.connect(config.SERVER_HOST, config.SERVER_PORT, config.SERVER_KEEPALIVE)
+			self.client.loop_start();
 
 			while True:
-				self.gpsdData = self.poller.getGpsdData()
+				rawGpsdData = self.poller.getGpsdData()
 				
 				try: 
-					# check if result contains compatible data
-					if self.gpsdData.keys()[0] == 'epx':
-
-						# check if the car is driving
-						if self.gpsdData['speed'] > 0.5:
-
-							# Try to send message to mqtt broker
-							self.sendQueue.put(self.gpsdData)
+					# check if gpsdData contains compatible data
+					if rawGpsdData.keys()[0] == 'epx':
+						self.gpsdData = {}
 						
-							# Save message to file archive
-							self.tracking.trackGpsData(gpsdData)
-							
-							# If speed < 20 m/s sleep for the time needed to drive 20m
-							# else sleep for one second if speed >= 20 m/s
-							if self.gpsdData['speed'] < 20.0:
-								self.sleepTime = 20.0/self.gpsdData['speed']
-							else: 
-								self.sleepTime = 1.0
-						else:
-							self.sleepTime = 2.5
-					else:
-						self.sleepTime = 2.5
-
-					time.sleep(self.sleepTime)
-					self.writeConsoleOutput()
-
+						for key in rawGpsdData.keys():
+							if key == 'class':
+								continue
+							if key == 'device':
+								continue
+		
+							self.gpsdData[key] = rawGpsdData.get(key)
+					
+						self.gpsdTime = datetime.datetime.strptime(str(self.gpsdData['time']),self.DATETIME_FORMAT)
+						
+						# Print debug information to screen
+						print "[Collector] Time: " + self.gpsdTime.isoformat() + ", Speed:" + str(self.gpsdData['speed']) + " m/s"
+						print "[Collector] Lat: " + str(self.gpsdData['lat']) + ", Lon: " + str(self.gpsdData['lon']) + ", Alt: " + str(self.gpsdData['alt'])
+						
+						# Send message to server
+						msg = json.dumps(self.gpsdData)
+						result, mid = self.client.publish("car/mazda3/position", payload=msg, qos=0, retain=True)
+						
+						# Save message to file archive
+						self.tracking.trackGpsdData(self.gpsdTime, self.gpsdData)
+						
+						time.sleep(0.5)	
+				
 				except(AttributeError, KeyError):
 					pass
-		
-		except(KeyboardInterrupt, SystemExit):
-			print 'Stopping Collector...'
-			self.tracking.close()
-			self.communication.join()
-			self.poller.join()
 
-	def writeConsoleOutput(self):
-		if self.gpsdData != None:
-			print 'Time: ' + self.gpsdData['time']
-			print 'Position: ' + str(self.gpsdData['lat']) + u" \u00b0, " + str(self.gpsdData['lon']) + u" \u00b0"
-			print 'Speed: ' + str(self.gpsdData['speed']) + ' m/s'
-		else:
-			print 'Time: N/A'
-			print 'Position: N/A'
-			print 'Speed: N/A'
+				time.sleep(0.5)	
+
+		except(KeyboardInterrupt, SystemExit):
+			print '[Collector] Stopping...'
+			self.tracking.close()
+			self.client.loop_stop()
+			self.poller.join()
 			
-		if self.sleepTime != None:
-			print 'Sleep Time: ' + str(self.sleepTime) + ' s'
-		else:
-			print 'Sleep Time: N/A'
-			
-		if self.communication != None:
-			if self.communication.isConnected():
-				print 'Server: connected'
-			else:
-				print 'Server: disconnected'
-				
-			print 'Message Cache: ' + str(self.communication.getCacheSize()) + ' Items'
+	def onPublish(self, client, userdata, mid):
+		print '[Client] Message '+ str(mid) + " reached the broker"
 		
+	def onConnect(self, client, userdata, flags, rc):
+		if rc == mqtt.CONNACK_ACCEPTED:
+			print "[Client] Connected to " + config.SERVER_HOST + ":" + str(config.SERVER_PORT)
+		else:
+			print "[Client] Connection returned result: " + mqtt.connack_string(rc)
+	
+	def onDisconnect(self, client, userdata, rc):
+		if rc != mqtt.MQTT_ERR_SUCCESS:
+			print "[Client] Unexpected disconnection from " + config.SERVER_HOST + ":" + str(config.SERVER_PORT)
+		else:
+			print "[Client] Disconnected from " + config.SERVER_HOST + ":" + str(config.SERVER_PORT)
+			
+			
 if __name__ == '__main__':
 	Collector().run()

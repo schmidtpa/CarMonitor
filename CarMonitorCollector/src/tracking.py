@@ -17,47 +17,46 @@ class FileTracking():
 		self.trackFile = None
 		self.trackDate = None
 		
-	def trackGpsData(self, gpsData):
-		self.checkTrackFile(gpsData)
-		self.writeTrackLine(gpsData)
+	def trackGpsdData(self, gpsdTime, gpsdData):
+		if gpsdData != None:
+			self.checkTrackFile(gpsdTime)
+			self.writeTrackLine(gpsdData)
 		
-	def writeTrackLine(self, gpsData):
-		self.trackFile.write(str(gpsData['time']))
+	def writeTrackLine(self, gpsdData):
+		self.trackFile.write(str(gpsdData['time']))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsData['mode']))
+		self.trackFile.write(str(gpsdData['mode']))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsData['lon']))
+		self.trackFile.write(str(gpsdData['lon']))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsData['lat']))
+		self.trackFile.write(str(gpsdData['lat']))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsData['alt']))
+		self.trackFile.write(str(gpsdData['alt']))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsData['track']))
+		self.trackFile.write(str(gpsdData['track']))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsData['climb']))
+		self.trackFile.write(str(gpsdData['climb']))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsData['speed']))
+		self.trackFile.write(str(gpsdData['speed']))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsData['epx']))
+		self.trackFile.write(str(gpsdData['epx']))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsData['epy']))
+		self.trackFile.write(str(gpsdData['epy']))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsData['epv']))
+		self.trackFile.write(str(gpsdData['epv']))
 		self.trackFile.write(self.DELIMITER)
-		self.trackFile.write(str(gpsData['ept']))
+		self.trackFile.write(str(gpsdData['ept']))
 		self.trackFile.write('\n')
 		self.trackFile.flush()
 	
-	def checkTrackFile(self, gpsData):
-		now = datetime.datetime.strptime(str(gpsdData['time']),self.DATETIME_FORMAT)
-
+	def checkTrackFile(self, gpsdTime):
 		if self.trackDate == None:
-			self.trackDate = now
+			self.trackDate = gpsdTime
 
 		if self.trackFile == None:
 			self.openTrackFile()
 			
-		if self.trackDate != now:
+		if self.trackDate != gpsdTime:
 			self.openTrackFile()
 
 	def openTrackFile(self):
@@ -105,19 +104,19 @@ class FileTracking():
 	
 	def checkTrackingPath(self):	
 		if not os.path.exists(config.TRACK_PATH):
-			print 'Tracking Path ' + config.TRACK_PATH + 'does not exists'
+			print '[Tracking] Path ' + config.TRACK_PATH + ' does not exists'
 		
 			try:
 				os.makedirs(config.TRACK_PATH)
-				print 'Tracking Path ' + config.TRACK_PATH + ' has been created' 
+				print '[Tracking] Path ' + config.TRACK_PATH + ' has been created' 
 				return True
 			except(OSError):
-				print 'Tracking Path ' + config.TRACK_PATH + ' can not be created'
+				print '[Tracking] Path ' + config.TRACK_PATH + ' can not be created'
 				return False
 		
 		else:
 			if not os.access(config.TRACK_PATH, os.W_OK):
-				print 'Tracking Path ' + config.TRACK_PATH + ' is not writeable'
+				print '[Tracking] Path ' + config.TRACK_PATH + ' is not writeable'
 				return False
 			else:
 				return True

@@ -16,7 +16,7 @@ class GpsdPoller(threading.Thread):
 		
 	def getGpsdData(self):
 		return self.gpsdData
-		
+
 	def run(self):
 		try:
 			while not self.stopRequest.isSet():
