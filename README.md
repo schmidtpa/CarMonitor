@@ -13,3 +13,8 @@ A webbased app shows the current position based on the data wich is retrieved fr
  - Compression of the local data
  - Persistance of the MQTT Messages
  - Storage of the location data in InfluxDB 
+ 
+### Used devices
+ - Raspberry Pi 3 Model B
+ - Huawei E3131 USB Modem
+ - Navilock Multi GNSS Receiver u-blox
