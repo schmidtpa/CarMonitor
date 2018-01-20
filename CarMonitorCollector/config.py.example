@@ -1,9 +1,9 @@
 # config.py
 SERVER_HOST = "mqqt-broker.example.org"
-SERVER_PORT = 1883
+SERVER_PORT = 8883
 SERVER_KEEPALIVE = 60
 SERVER_USER = 'user'
 SERVER_PASS = 'pass'
+SERVER_CERT = '/opt/carmonitor/certs/example.cert'
 CLIENT_ID = 'carname'
-MESSAGE_PATH = '/opt/carmonitor/messages/'
 TRACK_PATH = '/opt/carmonitor/log/'
