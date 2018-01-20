@@ -7,6 +7,7 @@ import os
 import time
 import datetime
 import json
+import math
 import paho.mqtt.client as mqtt
 
 import gpsd
@@ -17,8 +18,11 @@ import config
 class Collector():
 
 	DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
-	MAX_WAITING_TIME = 10.0
-	MIN_SPEED = 0.3
+	
+	MAX_WAITING_TIME = 10.0 # Maximum time to wait between to checks in seconds
+	MIN_SPEED = 0.5			# Minimum speed in meter per seconds for an update
+	MAX_DISTANCE = 20		# Maximum distance between to gps points in meters for an update
+	MAX_TIME = 	900			# Maximum time in seconds between two gps datums for an update
 
 	def __init__(self):
 		self.poller = gpsd.GpsdPoller()
@@ -34,10 +38,17 @@ class Collector():
 		self.client.on_publish = self.onPublish
 		
 		self.gpsdData = None
+		self.oldGpsdData = None
+		
 		self.gpsdTime = None
 		self.oldGpsdTime = None
+		self.sendGpsdTime = None
+		
 		self.gpsdTimeDelta = None
 		self.timeDeltaToWait = None
+		self.sendTimeDelta = None
+		
+		self.gpsdDistance = None
 		
 	def run(self):
 		print '[Collector] Starting...'
@@ -50,8 +61,12 @@ class Collector():
 			self.client.connect(config.SERVER_HOST, config.SERVER_PORT, config.SERVER_KEEPALIVE)
 			self.client.loop_start();
 			
-			print '[Collector] Maximum time delta: ' + str(self.MAX_WAITING_TIME)
-			print '[Collector] Minimum speed: ' + str(self.MIN_SPEED)
+			print '[Collector] Maximum time delta: ' + str(self.MAX_WAITING_TIME) + " s"
+			print '[Collector] Minimum speed: ' + str(self.MIN_SPEED) + " m/s"
+			print '[Collector] Maximum distance: ' + str(self.MAX_DISTANCE) + " m"
+			
+			# send data once after start
+			
 			
 			while True:
 				rawGpsdData = self.poller.getGpsdData()
@@ -61,14 +76,22 @@ class Collector():
 					self.prepareGpsdData(rawGpsdData)
 					
 					if self.gpsdData != None:
-						print "[Collector] Received new data from GPSD"
+						print "\n[Collector] Received new data from GPSD"
 					
 						# calculate new timestamp
 						self.gpsdTime = datetime.datetime.strptime(str(self.gpsdData['time']),self.DATETIME_FORMAT)
 						
 						# check if an old gpsd time stamp exists
 						if self.oldGpsdTime is None:
-							self.oldGpsdTime = self.gpsdTime	# crate one if not
+							self.oldGpsdTime = self.gpsdTime		# create one if not
+							
+						# check if an old gpsd send time stamp exists
+						if self.sendGpsdTime is None:
+							self.sendGpsdTime = self.gpsdTime		# create one if not do send data after start 
+							
+						# check if old gpsd data exists
+						if self.oldGpsdData is None:
+							self.oldGpsdData = self.gpsdData		# copy if not
 
 						# calculate the delta between the timestamps
 						if self.gpsdTime > self.oldGpsdTime:
@@ -79,18 +102,50 @@ class Collector():
 						# check if delta to wait is set
 						if self.timeDeltaToWait is None:
 							self.timeDeltaToWait = datetime.timedelta()
-
-						# check if the current delta is greater then delta to wait
+							
+						# check if an update is needed
 						if self.gpsdTimeDelta >= self.timeDeltaToWait:
 							print "[Collector] Checking if update is needed..."
+							update = False
 						
 							# Save old time stamp
 							self.oldGpsdTime = self.gpsdTime
+							
+							# Save old data
+							self.oldGpsdData = self.gpsdData
+							
+							# calculate the distance between the current and the old position
+							self.gpsdDistance = self.distance(self.gpsdData['lat'], self.gpsdData['lon'], self.oldGpsdData['lat'], self.oldGpsdData['lat'])
 						
-							# check if the car is driving
+							# check if the car is fast enough 
 							if self.gpsdData['speed'] >= self.MIN_SPEED:
 								print "[Collector] Update needed => current speed " + str(self.gpsdData['speed']) + " m/s >= needed speed " + str(self.MIN_SPEED) + " m/s"
-							
+								update = True
+							else:
+								print "[Collector] No update needed => current speed " + str(self.gpsdData['speed']) + " m/s < needed speed " + str(self.MIN_SPEED) + " m/s"
+								
+							# or if the maximum distance is reached
+							if self.gpsdDistance >= self.MAX_DISTANCE:
+								print "[Collector] Update needed => current distance " + str(self.gpsdDistance) + " m >= max distance " + str(self.MAX_DISTANCE) + " m"
+								update = True
+							else:
+								print "[Collector] No update needed => current distance " + str(self.gpsdDistance) + " m < max distance " + str(self.MAX_DISTANCE) + " m"
+								
+							# or if the maximum time is reached
+							if self.sendGpsdTime is not None:
+								self.sendTimeDelta = self.gpsdTime - self.sendGpsdTime
+								
+								if self.sendTimeDelta.total_seconds() >= self.MAX_TIME:
+									print "[Collector] Update needed => current send delta " + str(self.sendTimeDelta.total_seconds()) + " s >= max send delta " + str(self.MAX_TIME) + "s"
+									update = True
+								else:
+									print "[Collector] No update needed => current send delta " + str(self.sendTimeDelta.total_seconds()) + " s < max send delta " + str(self.MAX_TIME) + "s"
+								
+							# send data if an update is needed and calculate a new waiting time
+							if update:
+								# Save last send time
+								self.sendGpsdTime = self.gpsdTime
+
 								# Send message to server
 								self.sendMessageToServer()
 								
@@ -102,20 +157,20 @@ class Collector():
 									s = 20.0/self.gpsdData['speed']
 									
 									if s > self.MAX_WAITING_TIME:
-										s = MAX_WAITING_TIME
+										s = self.MAX_WAITING_TIME
 								else:
 									s = 1.0
 							else:
-								print "[Collector] No update needed => current speed: " + str(self.gpsdData['speed'])
 								s = self.MAX_WAITING_TIME
 		
 							#set new time to wait for next check
 							self.timeDeltaToWait = datetime.timedelta(seconds=s)
 							
-						# Print debug information to screen
+						# print debug information to screen
 						self.printDebugInformation()
 						
-						time.sleep(0.5)	
+						# sleep minimum half the duration until the next check, at least 0.25 seconds
+						time.sleep((self.timeDeltaToWait.total_seconds()+1)/4)
 					else:
 						print "[Collector] No data received from GPSD"
 					
@@ -129,37 +184,51 @@ class Collector():
 			self.tracking.close()
 			self.client.loop_stop()
 			self.poller.join()
+
+	def distance(self, latA, lonA, latB, lonB):
+		dy = 0.113 * math.fabs(latA - latB) 	# 0.113 = distance between two latitude circles in meters
+		dx = 0.0715 * math.fabs(lonA - lonB)	# 0.0715 = distance between two longitude circles in meters
+		return math.sqrt(dx * dx + dy * dy)
 			
 	def sendMessageToServer(self):
-		msg = json.dumps(self.gpsdData)
+		msgData = self.gpsdData
+		
+		if self.gpsdTimeDelta is not None:
+			msgData['check'] = self.gpsdTimeDelta.total_seconds()
+			
+		if self.sendTimeDelta is not None:
+			msgData['delta'] = self.sendTimeDelta.total_seconds()
+			
+		if self.gpsdDistance is not None:
+			msgData['dist'] = self.gpsdDistance
+
+		msg = json.dumps(msgData)
 		result, mid = self.client.publish("car/" + str(config.CLIENT_ID) + "/position", payload=msg, qos=0, retain=True)
 		print "[Client] send message " + str(mid) + " to the broker"
-		
 	
 	def sendMessageToArchive(self):
 		self.tracking.trackGpsdData(self.gpsdTime, self.gpsdData)
-	
 			
 	def printDebugInformation(self):
 		if self.gpsdTime is not None:
-			print "[Collector] New time: " + self.gpsdTime.isoformat() 
+			print "[Collector] Time: " + self.gpsdTime.isoformat() 
 		else:
-			print "[Collector] New time: N/A "
+			print "[Collector] Time: N/A "
+
+		if self.gpsdTimeDelta is not None and self.timeDeltaToWait is not None:
+			print "[Collector] Next check: " + str(self.timeDeltaToWait.total_seconds()-self.gpsdTimeDelta.total_seconds()) + " s"
+		else:
+			print "[Collector] Next check: N/A"
 			
-		if self.oldGpsdTime is not None:
-			print "[Collector] Old time: " + self.oldGpsdTime.isoformat() 
+		if self.gpsdDistance is not None:
+			print "[Collector] Distance: " + str(self.gpsdDistance) + " m"
 		else:
-			print "[Collector] Old time: N/A "
-	
-		if self.gpsdTimeDelta is not None:
-			print "[Collector] Current delta: " + str(self.gpsdTimeDelta.total_seconds())
-		else:
-			print "[Collector] Current delta: N/A"
+			print "[Collector] Distance: N/A "
 			
-		if self.timeDeltaToWait is not None:
-			print "[Collector] Needed delta:  " + str(self.timeDeltaToWait.total_seconds())
+		if self.sendTimeDelta is not None:
+			print "[Collector] Send delta: " + str(self.sendTimeDelta.total_seconds()) + " s"
 		else:
-			print "[Collector] Needed delta:  N/A "
+			print "[Collector] Send delta: N/A "
 		
 		if self.gpsdData is not None:
 			print "[Collector] Lat: " + str(self.gpsdData['lat']) + ", Lon: " + str(self.gpsdData['lon']) + ", Alt: " + str(self.gpsdData['alt']) + ", Speed: " + str(self.gpsdData['speed']) + " m/s"
