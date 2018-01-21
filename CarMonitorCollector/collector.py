@@ -65,9 +65,6 @@ class Collector():
 			print '[Collector] Minimum speed: ' + str(self.MIN_SPEED) + " m/s"
 			print '[Collector] Maximum distance: ' + str(self.MAX_DISTANCE) + " m"
 			
-			# send data once after start
-			
-			
 			while True:
 				rawGpsdData = self.poller.getGpsdData()
 				
@@ -193,9 +190,6 @@ class Collector():
 	def sendMessageToServer(self):
 		msgData = self.gpsdData
 		
-		if self.gpsdTimeDelta is not None:
-			msgData['check'] = self.gpsdTimeDelta.total_seconds()
-			
 		if self.sendTimeDelta is not None:
 			msgData['delta'] = self.sendTimeDelta.total_seconds()
 			
