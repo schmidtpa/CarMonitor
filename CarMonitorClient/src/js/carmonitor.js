@@ -4,8 +4,8 @@ var map;
 var carIcon = L.icon({
     iconUrl: '/style/arrow.png',
     iconSize: [32, 32],
-	iconAnchor:   [16, 16],
-    popupAnchor: [-32, 32]
+	iconAnchor: [16, 16],
+    popupAnchor: [16, 16]
 });
 
 $(document).ready(function(){
@@ -56,8 +56,8 @@ function onConnect() {
 	$("#loginDialog").hide();
 }
 
-function onFailure() {
-	$("#serverStatus").html('Verbindungsfehler');
+function onFailure(response) {
+	$("#serverStatus").html('Verbindungsfehler ' + response.errorMessage);
 	$("#loginDialog").show();
 }
 
@@ -68,12 +68,14 @@ function onMessageArrived(msg) {
 	carMsg = JSON.parse(msg.payloadString);
 	
 	if(cars[carId]==undefined){
-		cars[carId] = L.marker([carMsg.lat, carMsg.lon], { icon: carIcon, rotationAngle: Number(carMsg.track)});
+		cars[carId] = L.marker([carMsg.lat, carMsg.lon], { icon: carIcon});
 		cars[carId].addTo(map)
 	} else {
 		cars[carId].setLatLng(L.latLng(carMsg.lat, carMsg.lon));
-		cars[carId].setRotationAngle(Number(carMsg.track));
 	}
+	
+	cars[carId].setRotationAngle(Number(carMsg.track));
+	//cars[carId].bindPopup('<strong>'+carId+'</strong><br>Lat: ' + carMsg.lat + ', Lon: ' + carMsg.lon)
 	
 	$("#carInfo").html(carId + ' | Geschwindigkeit: ' + Math.round(carMsg.speed * 3.6) + ' km/h | Höhe: ' + Math.round(carMsg.alt) + ' m | Kurs ' + Math.round(carMsg.track) + '° | Steigrate ' + Math.round(carMsg.climb) + ' m/s');
 };
