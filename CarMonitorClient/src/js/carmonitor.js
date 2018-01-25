@@ -38,6 +38,7 @@ function setupServerConnection(loginUser, loginPass) {
 
 	mqtt = new Paho.MQTT.Client(serverHostname, serverPort, 'WebClient');
 	mqtt.onMessageArrived = onMessageArrived;
+	mqtt.onConnectionLost = onConnectionLost
 	
 	mqtt.connect({
 		timeout: 5,
@@ -54,6 +55,11 @@ function onConnect() {
 	mqtt.subscribe('car/+/position', {qos: 1});
 	$("#serverStatus").html(serverHostname);
 	$("#loginDialog").hide();
+}
+
+function onConnectionLost(){
+	$("#serverStatus").html('Verbindung unerwartet getrennt');
+	$("#loginDialog").show();
 }
 
 function onFailure(response) {
