@@ -166,8 +166,7 @@ class Collector():
 						# print debug information to screen
 						self.printDebugInformation()
 						
-						# sleep minimum half the duration until the next check, at least 0.25 seconds
-						time.sleep((self.timeDeltaToWait.total_seconds()+1)/4)
+						time.sleep(0.5)
 					else:
 						print "[Collector] No data received from GPSD"
 					
