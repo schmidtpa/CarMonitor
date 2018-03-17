@@ -63,7 +63,7 @@ class GpsCollector():
 			
 			# send position
 			topic = 'gps/position'
-			data = {'lat': carmonitor.gpsdData['speed'], 'lon': carmonitor.gpsdData['lon']}
+			data = {'lat': carmonitor.gpsdData['lat'], 'lon': carmonitor.gpsdData['lon']}
 			carmonitor.sendMessage(topic, data, 1)
 			
 			# send altitude
