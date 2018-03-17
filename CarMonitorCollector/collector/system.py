@@ -35,7 +35,7 @@ class SystemCollector():
 			# Send system uptime
 			self.updateUptime()
 			topic = 'collector/uptime'
-			data = self.uptime
+			data = round(self.uptime,0)
 			carmonitor.sendMessage(topic, data, 1)
 			
 			# Send system diskusage
@@ -47,7 +47,7 @@ class SystemCollector():
 			# Send system CPU temperature
 			self.updateTemperature()
 			topic = 'collector/temperature'
-			data = self.temperature 
+			data = round(self.temperature,2)
 			carmonitor.sendMessage(topic, data, 1)
 			
 		
@@ -57,7 +57,7 @@ class SystemCollector():
 		total = stat.f_blocks * stat.f_bsize
 		free = stat.f_bfree * stat.f_bsize
 		used = (stat.f_blocks - stat.f_bfree) * stat.f_bsize
-		usedp = float(used) / total
+		usedp = round((float(used) / float(total) * 100), 2)
 
 		self.diskusage = {'free': free, 'total': total, 'used': used, 'usedp': usedp}
 		

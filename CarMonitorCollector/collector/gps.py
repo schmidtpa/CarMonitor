@@ -63,27 +63,27 @@ class GpsCollector():
 			
 			# send position
 			topic = 'gps/position'
-			data = {'lat': carmonitor.gpsdData['lat'], 'lon': carmonitor.gpsdData['lon']}
+			data = {'lat': round(carmonitor.gpsdData['lat'],7), 'lon': round(carmonitor.gpsdData['lon'],7)}
 			carmonitor.sendMessage(topic, data, 1)
 			
 			# send altitude
 			topic = 'gps/altitude'
-			data = carmonitor.gpsdData['alt']
+			data = round(carmonitor.gpsdData['alt'])
 			carmonitor.sendMessage(topic, data, 1)
 			
 			# send speed
 			topic = 'gps/speed'
-			data = carmonitor.gpsdData['speed']
+			data = round(carmonitor.gpsdData['speed'],4)
 			carmonitor.sendMessage(topic, data, 1)
 	
 			# send heading
 			topic = 'gps/heading'
-			data = carmonitor.gpsdData['heading']
+			data = round(carmonitor.gpsdData['heading'],4)
 			carmonitor.sendMessage(topic, data, 1)
 			
 			# send climbrate
 			topic = 'gps/climbrate'
-			data = carmonitor.gpsdData['climbrate']
+			data = round(carmonitor.gpsdData['climbrate'],4)
 			carmonitor.sendMessage(topic, data, 1)
 			
 			# send satellites
