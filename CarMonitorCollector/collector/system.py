@@ -66,5 +66,5 @@ class SystemCollector():
 			self.uptime = float(f.readline().split()[0])
 			
 	def updateTemperature(self):
-		res = os.popen('vcgencmd measure_temp').readline()
-		self.temperature = float(res.replace("temp=","").replace("'C\n",""))
+		res = os.popen('cat /sys/class/thermal/thermal_zone0/temp').readline()
+		self.temperature float(res)/1000.0
