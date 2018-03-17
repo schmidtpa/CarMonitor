@@ -1,9 +1,40 @@
-# config.py
-SERVER_HOST = "mqqt-broker.example.org"
-SERVER_PORT = 8883
-SERVER_KEEPALIVE = 60
-SERVER_USER = 'user'
-SERVER_PASS = 'pass'
-SERVER_CERT = '/opt/carmonitor/certs/example.cert'
-CLIENT_ID = 'carname'
-TRACK_PATH = '/opt/carmonitor/log/'
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+#
+# CarMonitor Configuration File
+# 
+# Author: Patrick Schmidt <patrick@ealp-net.at>
+# License: Apache License, Version 2.0
+#
+
+# Collector Configurations
+collector = {
+	'system': {
+		'timedelta': 600.0 		# Maximum delta in seconds between system updates
+	},
+	'enviro': {
+		'timedelta': 60.0, 		# Maximum delta in seconds between environment updates
+		'temperature': 0.1,  	# Maximum temperature value change between updates in degrees celcius
+		'pressure': 1.0, 		# Maximum pressure value change between updates in Pascal
+		'accelerometer': 0.2	# Maximum value change between accelerometer updates in G
+	},
+	'gps': {
+		'timedelta': 60.0, 		# Maximum delta in seconds between gps updates
+		'distance': 20.0, 		# Maximum distance between to gps locations in meters to trigger an update
+		'speed': 0.5			# Minimum speed in meter per seconds to trigger an update
+	}
+}
+
+# Server Configuration
+server = {
+	'host': 'mqqt-broker.example.org',
+	'port':	8883,
+	'cert': '/opt/carmonitor/certs/example.cert'
+}
+
+# Client Configuration
+client = {
+	'id': 'carname',
+	'user': 'user',
+	'pass': 'pass'
+}

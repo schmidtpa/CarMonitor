@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CarMonitor</title>
+    <meta charset="utf-8" />
+	
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" />
+    <link rel="stylesheet" href="style/carmonitor.css" />
+</head>
+<body>
+	<nav class="navbar navbar-dark bg-dark">
+		<span class="navbar-brand" href="#">CarMonitor <b id="connStatus" >&#x25cf;</b></span>
+	</nav>
+	
+	<div id="container">
+		<div id="loginDialog" class="form-group">
+			<input id="loginUser" type="text" class="form-control" placeholder="Benutzer">
+			<input id="loginPass" type="password" class="form-control" placeholder="Passwort">
+			<button id="loginButton" type="submit" class="btn btn-primary">Anmelden</button>
+		</div>
+		<div id="map"></div>
+	</div>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.2/mqttws31.min.js"></script>
+	<script src="js/config.js"></script>
+	<script src="js/carmonitor.js"></script>
+</body>
+</html>
