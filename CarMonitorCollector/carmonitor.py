@@ -96,13 +96,49 @@ class CarMonitor():
 		if self.collectorTime is None:
 			print "[CarMonitor::MQTT] Cannot send message - no collector time available "
 		else:
-			topic = 'car/' + cfg.client['id'] + '/' + topic
-			timestamp = long(self.collectorTime.strftime("%s"))
-			message = {'t': timestamp, 'd': data}
-			payload = json.dumps(message)
+			mqttTopic = 'car/' + cfg.client['id'] + '/' + topic
 			
-			result, mid = self.client.publish(topic, payload=payload, qos=qos, retain=True)
+			if cfg.client['prot'] == 'json':
+				mqttPayload = self.buildJsonPayload(data)
+			elif cfg.client['prot'] == 'line':
+				mqttPayload = self.buildLinePayload(data, topic)
+			else:
+				print '[CarMonitor::MQTT] Unkown protocol config option "' + cfg.client['prot'] + '"'
+				return
+
+			result, mid = self.client.publish(mqttTopic, payload=mqttPayload, qos=qos, retain=True)
 			print "[CarMonitor::MQTT] Message " + str(mid) + " send to the broker"
+			
+	def buildJsonPayload(self, data):
+		epoch = datetime.datetime.utcfromtimestamp(0)
+		timestamp = str(long((self.collectorTime - epoch).total_seconds()) * 1000)
+		message = {'t': timestamp, 'd': data}
+		return json.dumps(message)
+	
+	def buildLinePayload(self, data, topic):
+		epoch = datetime.datetime.utcfromtimestamp(0)
+		timestamp = str(long((self.collectorTime - epoch).total_seconds()) * 1000000000)
+		measurement = str(topic)
+		tags = 'car=' + str(cfg.client['id'])
+		fields = ''
+		
+		counter = 0
+		dataLen = len(data)
+		
+		for key in data:
+			if counter < (dataLen - 1):
+				delemiter = ','
+			else:
+				delemiter = ''
+				
+			if isinstance(data[key], basestring):
+				fields = fields + str(key) + '=' + '"' + str(data[key]) + '"' +  + delemiter
+			else:
+				fields = fields + str(key) + '=' + str(data[key]) + delemiter
+
+			counter = counter + 1
+		
+		return measurement + ',' + tags + ' ' + fields + ' ' + timestamp 
 			
 	def onPublish(self, client, userdata, mid):
 		print "[CarMonitor::MQTT] Message " + str(mid) + " reached the broker"

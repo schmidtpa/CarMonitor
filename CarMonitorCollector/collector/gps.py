@@ -62,7 +62,7 @@ class GpsCollector():
 		if self.update:
 			
 			# send the new data
-			topic='gps'
+			topic='position'
 			data = {
 				'lat': round(carmonitor.gpsdData['lat'],7),
 				'lon': round(carmonitor.gpsdData['lon'],7),
@@ -71,12 +71,10 @@ class GpsCollector():
 				'head': round(carmonitor.gpsdData['heading'],4),
 				'climb': round(carmonitor.gpsdData['climbrate'],4),
 				'sats': carmonitor.gpsdData['sats'],
-				'err': {
-					'x': round(carmonitor.gpsdData['epx'],4),
-					'y': round(carmonitor.gpsdData['epy'],4),
-					'v': round(carmonitor.gpsdData['epv'],4),
-					't': round(carmonitor.gpsdData['ept'],4)
-				}
+				'ex': round(carmonitor.gpsdData['epx'],4),
+				'ey': round(carmonitor.gpsdData['epy'],4),
+				'ev': round(carmonitor.gpsdData['epv'],4),
+				'et': round(carmonitor.gpsdData['ept'],4)
 			}
 			
 			carmonitor.sendMessage(topic, data, 1)
