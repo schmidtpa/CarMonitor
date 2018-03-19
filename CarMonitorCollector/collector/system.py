@@ -31,23 +31,19 @@ class SystemCollector():
 		if self.updateTimeDelta.total_seconds() >= self.cfg['timedelta']:
 			print '[Collector::System] Send system information'
 			self.updateTime = carmonitor.collectorTime
-
-			# Send system uptime
+			
+			# update system metrics
 			self.updateUptime()
-			topic = 'collector/uptime'
-			data = round(self.uptime,0)
-			carmonitor.sendMessage(topic, data, 1)
-			
-			# Send system diskusage
 			self.updateDiskusage()
-			topic = 'collector/diskusage'
-			data = self.diskusage
-			carmonitor.sendMessage(topic, data, 1)
-			
-			# Send system CPU temperature
 			self.updateTemperature()
-			topic = 'collector/temperature'
-			data = round(self.temperature,2)
+			
+			# send system metrics
+			topic = 'collector'
+			data = { 
+				'uptime': round(self.uptime,0),
+				'disk': self.diskusage,
+				'temp': round(self.temperature,2)
+			}
 			carmonitor.sendMessage(topic, data, 1)
 			
 		
@@ -67,4 +63,4 @@ class SystemCollector():
 			
 	def updateTemperature(self):
 		res = os.popen('cat /sys/class/thermal/thermal_zone0/temp').readline()
-		self.temperature float(res)/1000.0
+		self.temperature = float(res)/1000.0

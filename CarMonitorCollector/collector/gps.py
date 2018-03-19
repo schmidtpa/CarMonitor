@@ -58,42 +58,27 @@ class GpsCollector():
 			print '[Collector::GPS] Reached max distance threshold (' + str(self.cfg['distance']) + ' m):  ' + str(gpsdDistance) +  'm'
 			self.update = True
 		
-		# process a gps status update
+		# process a gps status update and send the new data
 		if self.update:
 			
-			# send position
-			topic = 'gps/position'
-			data = {'lat': round(carmonitor.gpsdData['lat'],7), 'lon': round(carmonitor.gpsdData['lon'],7)}
-			carmonitor.sendMessage(topic, data, 1)
+			# send the new data
+			topic='gps'
+			data = {
+				'lat': round(carmonitor.gpsdData['lat'],7),
+				'lon': round(carmonitor.gpsdData['lon'],7),
+				'alt': round(carmonitor.gpsdData['alt']),
+				'speed': round(carmonitor.gpsdData['speed'],4),
+				'head': round(carmonitor.gpsdData['heading'],4),
+				'climb': round(carmonitor.gpsdData['climbrate'],4),
+				'sats': carmonitor.gpsdData['sats'],
+				'err': {
+					'x': round(carmonitor.gpsdData['epx'],4),
+					'y': round(carmonitor.gpsdData['epy'],4),
+					'v': round(carmonitor.gpsdData['epv'],4),
+					't': round(carmonitor.gpsdData['ept'],4)
+				}
+			}
 			
-			# send altitude
-			topic = 'gps/altitude'
-			data = round(carmonitor.gpsdData['alt'])
-			carmonitor.sendMessage(topic, data, 1)
-			
-			# send speed
-			topic = 'gps/speed'
-			data = round(carmonitor.gpsdData['speed'],4)
-			carmonitor.sendMessage(topic, data, 1)
-	
-			# send heading
-			topic = 'gps/heading'
-			data = round(carmonitor.gpsdData['heading'],4)
-			carmonitor.sendMessage(topic, data, 1)
-			
-			# send climbrate
-			topic = 'gps/climbrate'
-			data = round(carmonitor.gpsdData['climbrate'],4)
-			carmonitor.sendMessage(topic, data, 1)
-			
-			# send satellites
-			topic = 'gps/satellites'
-			data = carmonitor.gpsdData['sats']
-			carmonitor.sendMessage(topic, data, 1)
-			
-			# send errors
-			topic = 'gps/errors'
-			data = {'x': carmonitor.gpsdData['epx'],'y': carmonitor.gpsdData['epy'],'v': carmonitor.gpsdData['epv'],'t': carmonitor.gpsdData['ept']}
 			carmonitor.sendMessage(topic, data, 1)
 			
 			# save last update time

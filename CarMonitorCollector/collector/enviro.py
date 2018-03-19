@@ -22,10 +22,8 @@ class EnviroCollector():
 		self.lastPressureValue = None
 		self.lastAccelValue = None
 		
-		self.updateTemp = False
-		self.updatePressure = False
+		self.updateEnviro = False
 		self.updateAccel = False
-
 		
 	def run(self, carmonitor):
 		if carmonitor.enviroData is None:
@@ -41,8 +39,7 @@ class EnviroCollector():
 		if self.updateTimeDelta.total_seconds() >= self.cfg['timedelta']:
 			print '[Collector::Enviro] Reached time threshold (' + str(self.cfg['timedelta']) + ' s): ' + str(self.updateTimeDelta.total_seconds())
 			self.updateTime = carmonitor.collectorTime
-			self.updateTemp = True
-			self.updatePressure = True
+			self.updateEnviro = True
 			self.updateAccel = True
 			
 		# Check temperature
@@ -53,7 +50,7 @@ class EnviroCollector():
 		
 		if tempDelta >= self.cfg['temperature']:
 			print '[Collector::Enviro] Reached temperature threshold (' + str(tempDelta) + ' °C): ' + str(carmonitor.enviroData['temperature']) + ' °C'
-			self.updateTemp = True
+			self.updateEnviro = True
 		
 		# Check pressure
 		if self.lastPressureValue is None:
@@ -63,7 +60,7 @@ class EnviroCollector():
 		
 		if pressureDelta >= self.cfg['pressure']:
 			print '[Collector::Enviro] Reached pressure threshold (' + str(pressureDelta) + ' Pa): ' + str(carmonitor.enviroData['pressure']) + ' Pa'
-			self.updatePressure = True
+			self.updateEnviro = True
 		
 		# Check accelerometer
 		if self.lastAccelValue is None:
@@ -78,27 +75,23 @@ class EnviroCollector():
 			print '[Collector::Enviro] Reached acceleration threshold ('+ str(xDelta) +'/'+ str(yDelta) +'/'+ str(zDelta) +' G)'
 			self.updateAccel = True
 			
-		# Send temperature
-		if self.updateTemp:			
-			topic = 'enviro/temperature'
-			data = round(carmonitor.enviroData['temperature'],2)
+		# Send environment data
+		if self.updateEnviro:
+			topic = 'enviro'
+			data = {
+				'temp': round(carmonitor.enviroData['temperature'],2),
+				'press': round(carmonitor.enviroData['pressure'],2)
+			}
 			carmonitor.sendMessage(topic, data, 1)
 			
 			self.lastTempValue = carmonitor.enviroData['temperature']
-			self.updateTemp = False
-		
-		# Send pressure
-		if self.updatePressure:
-			topic = 'enviro/pressure'
-			data = round(carmonitor.enviroData['pressure'],2)
-			carmonitor.sendMessage(topic, data, 1)
-			
 			self.lastPressureValue = carmonitor.enviroData['pressure']
-			self.updatePressure = False
+
+			self.updateEnviro= False
 		
 		# Send acceleration	
 		if self.updateAccel:
-			topic = 'enviro/acceleration'
+			topic = 'accel '
 			
 			x = round(carmonitor.enviroData['accelerometer']['x'],6)
 			y = round(carmonitor.enviroData['accelerometer']['y'],6)
