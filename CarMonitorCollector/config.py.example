@@ -34,7 +34,8 @@ server = {
 
 # Client Configuration
 client = {
-	'id': 'carname',
-	'user': 'user',
-	'pass': 'pass'
+	'id': 'carname',		# ID of the local mqtt client
+	'user': 'username',		# Username 
+	'pass': 'password',		# Password
+	'prot': 'line'			# Protocol used (json = JSON or line = InfluxDB Line Protocol)
 }
