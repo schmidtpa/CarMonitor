@@ -1,0 +1,13 @@
+[Unit]
+Description=CarMonitor
+After=multi-user.target
+
+[Service]
+Type=idle
+User=carmonitor
+Restart=always
+RestartSec=5
+ExecStart=/usr/bin/python /opt/carmonitor/bin/carmonitor.py
+
+[Install]
+WantedBy=multi-user.target

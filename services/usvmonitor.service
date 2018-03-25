@@ -1,0 +1,13 @@
+[Unit]
+Description=USVMonitor
+After=multi-user.target
+
+[Service]
+Type=idle
+User=root
+Restart=always
+RestartSec=5
+ExecStart=/usr/bin/python /opt/carmonitor/bin/usvmonitor.py
+
+[Install]
+WantedBy=multi-user.target
