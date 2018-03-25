@@ -100,14 +100,14 @@ class CarMonitor():
 			
 			if cfg.client['prot'] == 'json':
 				mqttPayload = self.buildJsonPayload(data)
-			elif cfg.client['prot'] == 'line':
+			elif cfg.client['prot'] == 'influx':
 				mqttPayload = self.buildLinePayload(data, topic)
 			else:
 				print '[CarMonitor::MQTT] Unkown protocol config option "' + cfg.client['prot'] + '"'
 				return
 
 			result, mid = self.client.publish(mqttTopic, payload=mqttPayload, qos=qos, retain=True)
-			print "[CarMonitor::MQTT] Message " + str(mid) + " send to the broker"
+			# print "[CarMonitor::MQTT] Message " + str(mid) + " send to the broker"
 			
 	def buildJsonPayload(self, data):
 		epoch = datetime.datetime.utcfromtimestamp(0)
@@ -141,8 +141,8 @@ class CarMonitor():
 		return measurement + ',' + tags + ' ' + fields + ' ' + timestamp 
 			
 	def onPublish(self, client, userdata, mid):
-		print "[CarMonitor::MQTT] Message " + str(mid) + " reached the broker"
-		
+		#print "[CarMonitor::MQTT] Message " + str(mid) + " reached the broker"
+		pass
 		
 	def onConnect(self, client, userdata, flags, rc):
 		if rc == mqtt.CONNACK_ACCEPTED:

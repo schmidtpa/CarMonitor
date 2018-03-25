@@ -41,7 +41,10 @@ class SystemCollector():
 			topic = 'collector'
 			data = { 
 				'uptime': round(self.uptime,0),
-				'disk': self.diskusage,
+				'disk_free': self.diskusage['free'],
+				'disk_total': self.diskusage['total'],
+				'disk_used': self.diskusage['used'],
+				'disk_usedp': self.diskusage['usedp'],
 				'temp': round(self.temperature,2)
 			}
 			carmonitor.sendMessage(topic, data, 1)

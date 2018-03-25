@@ -91,7 +91,7 @@ class EnviroCollector():
 		
 		# Send acceleration	
 		if self.updateAccel:
-			topic = 'accelerometer'
+			topic = 'accel'
 			
 			x = round(carmonitor.enviroData['accelerometer']['x'],6)
 			y = round(carmonitor.enviroData['accelerometer']['y'],6)
