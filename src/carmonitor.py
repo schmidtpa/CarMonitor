@@ -11,7 +11,6 @@ import os
 import time
 import datetime
 import json
-import socket
 import paho.mqtt.client as mqtt
 
 import poller.enviro
@@ -20,6 +19,8 @@ import poller.gpsd
 import collector.system
 import collector.enviro
 import collector.gps
+
+import storage.queue
 
 import config as cfg
 
@@ -37,6 +38,7 @@ class CarMonitor():
 		self.client.on_publish = self.onPublish
 		
 		self.isConnected = False
+		self.persistence = storage.queue.PersistentMessageQueue(cfg.storage)
 		
 		self.collectorTime = None
 		self.collectorTimeSrc = None
@@ -71,7 +73,8 @@ class CarMonitor():
 				self.systemCollector.run(self)
 				self.enviroCollector.run(self)
 				self.gpsCollector.run(self)
-				
+				self.persistence.run(self)
+
 				time.sleep(0.5)
 
 		except(KeyboardInterrupt, SystemExit):
@@ -108,6 +111,7 @@ class CarMonitor():
 				return
 
 			result, mid = self.client.publish(mqttTopic, payload=mqttPayload, qos=qos, retain=True)
+			self.persistence.saveMessage(self.collectorTime, mid, topic, data)
 			#print "[CarMonitor::MQTT] Message " + str(mid) + " send to the broker"
 
 	def buildJsonPayload(self, data):
@@ -143,7 +147,7 @@ class CarMonitor():
 	
 	def onPublish(self, client, userdata, mid):
 		#print "[CarMonitor::MQTT] Message " + str(mid) + " reached the broker"
-		pass
+		self.persistence.removeMessage(mid)
 		
 	def onConnect(self, client, userdata, flags, rc):
 		if rc == mqtt.CONNACK_ACCEPTED:
