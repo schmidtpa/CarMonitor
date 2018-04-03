@@ -2,6 +2,10 @@
 # 
 # Author: Patrick Schmidt <patrick@ealp-net.at>
 # License: Apache License, Version 2.0
+#
+# Written for a JoyIT StromPiV2 
+# see https://www.joy-it.net/strompi-2/
+# 
 
 import RPi.GPIO as GPIO
 import time
@@ -31,7 +35,7 @@ try:
 		else:
 			print "[USVMonitor] Running on main power."
 			
-		time.sleep(2.5)
+		time.sleep(10.0)
 		
 	print "[USVMonitor] Stopped monitoring script due power outage."
 

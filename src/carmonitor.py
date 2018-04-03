@@ -28,7 +28,7 @@ class CarMonitor():
 	
 	def __init__(self):
 		self.client = mqtt.Client(cfg.client['id'], True)
-		self.client.tls_set(cfg.server['cert'])
+		self.client.tls_set(cfg.server['cert'],cfg.client['cert'], cfg.client['key'])
 		self.client.username_pw_set(cfg.client['user'], cfg.client['pass'])	
 		
 		self.client.on_connect = self.onConnect
