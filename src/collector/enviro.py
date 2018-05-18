@@ -79,8 +79,8 @@ class EnviroCollector():
 		if self.updateEnviro:
 			topic = 'weather'
 			data = {
-				'temp': round(carmonitor.enviroData['temperature'],2),
-				'press': round(carmonitor.enviroData['pressure'],2)
+				'temperature': round(carmonitor.enviroData['temperature'],2),
+				'pressure': round(carmonitor.enviroData['pressure'],2)
 			}
 			carmonitor.sendMessage(topic, data, 1)
 			
@@ -91,7 +91,7 @@ class EnviroCollector():
 		
 		# Send acceleration	
 		if self.updateAccel:
-			topic = 'accel'
+			topic = 'acceleration'
 			
 			x = round(carmonitor.enviroData['accelerometer']['x'],6)
 			y = round(carmonitor.enviroData['accelerometer']['y'],6)

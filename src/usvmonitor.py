@@ -24,16 +24,23 @@ try:
 		
 	print "[USVMonitor] StromPiV2 ready!"
 	
+	counter = 0
+	
 	while True :
 		Current_State = GPIO.input(GPIO_TPIN)
 		
 		if Current_State == 1:
-			print "[USVMonitor] Running on backup power, shutting down..."
+			print "[USVMonitor] Running on backup power (" + str(counter) + "/600)"
+			counter = counter + 1
+		else:
+			print "[USVMonitor] Running on main power (0/600)"
+			counter = 0
+			
+		if counter >= 600:
+			print "[USVMonitor] Shutting down..."
 			time.sleep(1.0)
 			os.system("sudo shutdown -h now")
 			break
-		else:
-			print "[USVMonitor] Running on main power."
 			
 		time.sleep(10.0)
 		

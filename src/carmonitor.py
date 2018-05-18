@@ -117,7 +117,8 @@ class CarMonitor():
 	def buildJsonPayload(self, data):
 		epoch = datetime.datetime.utcfromtimestamp(0)
 		timestamp = str(long((self.collectorTime - epoch).total_seconds()) * 1000)
-		message = {'t': timestamp, 'd': data}
+		message = data
+		message['time'] = timestamp
 		return json.dumps(message)
 	
 	def buildLinePayload(self, data, topic):
