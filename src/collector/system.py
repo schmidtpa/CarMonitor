@@ -9,6 +9,7 @@
 
 import os
 import datetime
+import numpy
 
 class SystemCollector():
 
@@ -40,12 +41,12 @@ class SystemCollector():
 			# send system metrics
 			topic = 'collector'
 			data = { 
-				'uptime': round(self.uptime,0),
+				'uptime': round(numpy.nan_to_num(self.uptime),0),
 				'disk_free': self.diskusage['free'],
 				'disk_total': self.diskusage['total'],
 				'disk_used': self.diskusage['used'],
 				'disk_usedp': self.diskusage['usedp'],
-				'temp': round(self.temperature,2)
+				'temp': round(numpy.nan_to_num(self.temperature),2)
 			}
 			carmonitor.sendMessage(topic, data, 1)
 			

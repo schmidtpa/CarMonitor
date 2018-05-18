@@ -9,6 +9,7 @@
 
 import datetime
 import math
+import numpy
 
 class EnviroCollector():
 
@@ -79,8 +80,8 @@ class EnviroCollector():
 		if self.updateEnviro:
 			topic = 'weather'
 			data = {
-				'temperature': round(carmonitor.enviroData['temperature'],2),
-				'pressure': round(carmonitor.enviroData['pressure'],2)
+				'temperature': round(numpy.nan_to_num(carmonitor.enviroData['temperature']),2),
+				'pressure': round(numpy.nan_to_num(carmonitor.enviroData['pressure']),2)
 			}
 			carmonitor.sendMessage(topic, data, 1)
 			

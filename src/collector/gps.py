@@ -9,6 +9,7 @@
 
 import os
 import math
+import numpy
 import datetime
 
 class GpsCollector():
@@ -63,18 +64,19 @@ class GpsCollector():
 			
 			# send the new data
 			topic='position'
+			
 			data = {
-				'lat': round(carmonitor.gpsdData['lat'],7),
-				'lon': round(carmonitor.gpsdData['lon'],7),
-				'alt': round(carmonitor.gpsdData['alt']),
-				'speed': round(carmonitor.gpsdData['speed'],4),
-				'head': round(carmonitor.gpsdData['heading'],4),
-				'climb': round(carmonitor.gpsdData['climbrate'],4),
+				'lat': round(numpy.nan_to_num(carmonitor.gpsdData['lat']),7),
+				'lon': round(numpy.nan_to_num(carmonitor.gpsdData['lon']),7),
+				'alt': round(numpy.nan_to_num(carmonitor.gpsdData['alt'])),
+				'speed': round(numpy.nan_to_num(carmonitor.gpsdData['speed']),4),
+				'head': round(numpy.nan_to_num(carmonitor.gpsdData['heading']),4),
+				'climb': round(numpy.nan_to_num(carmonitor.gpsdData['climbrate']),4),
 				'sats': carmonitor.gpsdData['sats'],
-				'ex': round(carmonitor.gpsdData['epx'],4),
-				'ey': round(carmonitor.gpsdData['epy'],4),
-				'ev': round(carmonitor.gpsdData['epv'],4),
-				'et': round(carmonitor.gpsdData['ept'],4)
+				'ex': round(numpy.nan_to_num(carmonitor.gpsdData['epx']),4),
+				'ey': round(numpy.nan_to_num(carmonitor.gpsdData['epy']),4),
+				'ev': round(numpy.nan_to_num(carmonitor.gpsdData['epv']),4),
+				'et': round(numpy.nan_to_num(carmonitor.gpsdData['ept']),4)
 			}
 			
 			carmonitor.sendMessage(topic, data, 1)
