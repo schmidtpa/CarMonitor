@@ -10,7 +10,7 @@
 import os
 import time
 import datetime
-import json
+import simplejson as json
 import paho.mqtt.client as mqtt
 
 import poller.enviro
@@ -119,7 +119,7 @@ class CarMonitor():
 		timestamp = str(long((self.collectorTime - epoch).total_seconds()) * 1000)
 		message = data
 		message['time'] = timestamp
-		return json.dumps(message)
+		return json.dumps(message, ignore_nan=True) # https://simplejson.readthedocs.io/en/latest/#basic-usage
 	
 	def buildLinePayload(self, data, topic):
 		epoch = datetime.datetime.utcfromtimestamp(0)
