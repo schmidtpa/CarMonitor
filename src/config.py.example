@@ -42,6 +42,7 @@ client = {
 
 # Persistent storage options
 storage = {
-	'time': 60,							# Time for messages to stay in the in-memory queue until they are written to the storage
-	'path': '/opt/carmonitor/messages/'		# Path where to store the messages
+	'time': 60,								# Time for messages to stay in the in-memory queue until they are written to the storage
+	'path': '/opt/carmonitor/messages/',	# Path where to store the messages
+	'fail': '/opt/carmonitor/errors/'		# Path where to store failed messages
 }

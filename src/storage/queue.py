@@ -11,7 +11,7 @@ import os
 import datetime
 import hashlib
 import uuid
-import json
+import simplejson as json
 
 class PersistentMessageQueue(): 
 	
@@ -52,10 +52,13 @@ class PersistentMessageQueue():
 				print "[CarMonitor::Storage] Sending stored message " + str(filePath)
 				
 				with open(filePath,'r') as jsonFile:
-					jsonData = json.load(jsonFile)
-					carmonitor.sendMessage(jsonData['topic'], jsonData['payload'], 1)
-					
-				os.remove(filePath)
+					try:
+						jsonData = json.load(jsonFile)
+						carmonitor.sendMessage(jsonData['topic'], jsonData['payload'], 1)
+						os.remove(filePath)
+					except json.errors.JSONDecodeError:
+						os.rename(filePath, self.cfg['fail'] + filename)
+						print "[CarMonitor::Storage] Moved failed message " + str(filePath)
 	
 	def saveMessage(self, time, mid, topic, payload):
 		self.messageQueue[mid] = {
