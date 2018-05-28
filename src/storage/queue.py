@@ -56,8 +56,9 @@ class PersistentMessageQueue():
 						jsonData = json.load(jsonFile)
 						carmonitor.sendMessage(jsonData['topic'], jsonData['payload'], 1)
 						os.remove(filePath)
-					except json.errors.JSONDecodeError:
+					except Exception as e:
 						os.rename(filePath, self.cfg['fail'] + filename)
+						print "[CarMonitor::Storage] Error: " + str(e)
 						print "[CarMonitor::Storage] Moved failed message " + str(filePath)
 	
 	def saveMessage(self, time, mid, topic, payload):
