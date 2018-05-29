@@ -115,15 +115,24 @@ class CarMonitor():
 			#print "[CarMonitor::MQTT] Message " + str(mid) + " send to the broker"
 
 	def buildJsonPayload(self, data):
-		epoch = datetime.datetime.utcfromtimestamp(0)
-		timestamp = str(long((self.collectorTime - epoch).total_seconds()) * 1000)
 		message = data
-		message['time'] = timestamp
+		
+		if not 'time' in data:
+			epoch = datetime.datetime.utcfromtimestamp(0)
+			timestamp = str(long((self.collectorTime - epoch).total_seconds()) * 1000)
+			message['time'] = timestamp
+			
 		return json.dumps(message, ignore_nan=True) # https://simplejson.readthedocs.io/en/latest/#basic-usage
 	
 	def buildLinePayload(self, data, topic):
+		if 'time' in data:
+			messageTime = data['time']
+			del data['time']
+		else:
+			messageTime = self.collectorTime
+		
 		epoch = datetime.datetime.utcfromtimestamp(0)
-		timestamp = str(long((self.collectorTime - epoch).total_seconds()) * 1000000000)
+		timestamp = str(long((messageTime - epoch).total_seconds()) * 1000000000)
 		measurement = str(topic)
 		tags = 'car=' + str(cfg.client['id'])
 		fields = ''
