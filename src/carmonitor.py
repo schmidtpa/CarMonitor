@@ -32,6 +32,7 @@ class CarMonitor():
 		self.client = mqtt.Client(cfg.client['id'], True)
 		self.client.tls_set(cfg.server['cert'],cfg.client['cert'], cfg.client['key'])
 		self.client.username_pw_set(cfg.client['user'], cfg.client['pass'])	
+		self.client.will_set('car/' + cfg.client['id'] + '/status', payload=0, qos=0, retain=True)
 		
 		self.client.on_connect = self.onConnect
 		self.client.on_disconnect = self.onDisconnect
@@ -154,6 +155,9 @@ class CarMonitor():
 			counter = counter + 1
 		
 		return measurement + ',' + tags + ' ' + fields + ' ' + timestamp 
+	
+	def sendOnlineStatus(self):
+		self.client.publish('car/' + cfg.client['id'] + '/status', payload=1, qos=0, retain=False)
 	
 	def onPublish(self, client, userdata, mid):
 		#print "[CarMonitor::MQTT] Message " + str(mid) + " reached the broker"
