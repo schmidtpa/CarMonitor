@@ -25,7 +25,9 @@ class PersistentMessageQueue():
 		self.sendQueuedMessages(carmonitor)
 		
 	def saveQueuedMessages(self, carmonitor):
-		for mid, message in self.messageQueue.iteritems():
+		for mid in self.messageQueue.keys():
+			message = self.messageQueue[mid]
+			
 			delta = carmonitor.collectorTime - message['time']
 			#print "[CarMonitor::Storage] Message " + str(mid) + " send delta " + str(delta.total_seconds())
 			
