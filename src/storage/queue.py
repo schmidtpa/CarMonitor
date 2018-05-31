@@ -74,9 +74,7 @@ class PersistentMessageQueue():
 		#print "[CarMonitor::Storage] Message " + str(mid) + " queued "
 
 	def removeMessage(self, mid):
-		if not mid in self.messageQueue:
-			print "[CarMonitor::Storage] Unkown mid " + str(mid)
-		else:
+		if mid in self.messageQueue:
 			message = self.messageQueue[mid]
 			
 			if message['file'] is not None:
@@ -85,6 +83,8 @@ class PersistentMessageQueue():
 				
 			del self.messageQueue[mid]
 			#print "[CarMonitor::Storage] Removed message " + str(mid)
+		else:
+			print "[CarMonitor::Storage] Unkown mid to remove " + str(mid)
 	
 	def generateQueueId(self):
 		m = hashlib.md5()

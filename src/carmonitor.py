@@ -32,7 +32,7 @@ class CarMonitor():
 		self.client = mqtt.Client(cfg.client['id'], True)
 		self.client.tls_set(cfg.server['cert'],cfg.client['cert'], cfg.client['key'])
 		self.client.username_pw_set(cfg.client['user'], cfg.client['pass'])	
-		self.client.will_set('car/' + cfg.client['id'] + '/status', payload='{ "online": false }', qos=2, retain=True)
+		self.client.will_set('car/' + cfg.client['id'] + '/status', payload='{ "online": 0 }', qos=2, retain=True)
 		
 		self.client.on_connect = self.onConnect
 		self.client.on_disconnect = self.onDisconnect
@@ -84,6 +84,9 @@ class CarMonitor():
 			self.enviroPoller.join()
 			self.gpsdPoller.join()
 			print '[CarMonitor] Stopped'
+			
+		except Exception as e:
+			print '[CarMonitor] Error: ' + str(e)
 	
 	def updateCollectorTime(self):
 		if self.gpsdData is not None:
@@ -163,7 +166,7 @@ class CarMonitor():
 	def onConnect(self, client, userdata, flags, rc):
 		if rc == mqtt.CONNACK_ACCEPTED:
 			print "[CarMonitor::MQTT] Connected to " + cfg.server['host'] + ":" + str(cfg.server['port'])
-			self.client.publish('car/' + cfg.client['id'] + '/status', payload='{ "online": true }', qos=2, retain=False)
+			self.client.publish('car/' + cfg.client['id'] + '/status', payload='{ "online": 1 }', qos=2, retain=False)
 			self.isConnected = True
 		else:
 			print "[CarMonitor::MQTT] Connection returned result: " + mqtt.connack_string(rc)
