@@ -36,7 +36,7 @@ try:
 			print "[USVMonitor] Running on main power (0/600)"
 			counter = 0
 			
-		if counter >= 60:
+		if counter >= 30:
 			print "[USVMonitor] Shutting down..."
 			time.sleep(1.0)
 			os.system("sudo shutdown -h now")
