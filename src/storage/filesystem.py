@@ -26,26 +26,36 @@ class MessageStorage():
 		
 	def saveQueuedMessages(self, carmonitor):
 		for mid in self.messageQueue.keys():
-			message = self.messageQueue[mid]
-			
-			delta = carmonitor.collectorTime - message['time']
-			#print "[CarMonitor::Storage] Message " + str(mid) + " send delta " + str(delta.total_seconds())
-			
-			if message['file'] is None and delta.total_seconds() >= self.cfg['time']:
-				filePath = str(self.cfg['path'] + self.messageQueueId + '_' + str(mid) + '.msg')
+			try:
+				message = self.messageQueue[mid]
 				
-				jsonData = {
-					'topic': message['topic'],
-					'payload': message['payload']
-				}
+				if not time in message:
+					message['time'] = carmonitor.collectorTime
+					
+				if not file in message:
+					message['file'] = None
 				
-				msgFile = open(filePath , "w")
-				msgFile.write(json.dumps(jsonData))
-				msgFile.close()
+				delta = carmonitor.collectorTime - message['time']
+				#print "[CarMonitor::Storage] Message " + str(mid) + " send delta " + str(delta.total_seconds())
 				
-				self.messageQueue[mid]['file'] = filePath
+				if message['file'] is None and delta.total_seconds() >= self.cfg['time']:
+					filePath = str(self.cfg['path'] + self.messageQueueId + '_' + str(mid) + '.msg')
+					
+					jsonData = {
+						'topic': message['topic'],
+						'payload': message['payload'],
+						'qos': message['qos']
+					}
+					
+					msgFile = open(filePath , "w")
+					msgFile.write(json.dumps(jsonData))
+					msgFile.close()
+					
+					self.messageQueue[mid]['file'] = filePath
+					print "[CarMonitor::Storage] Saved message " + str(mid) + " to " + str(filePath)
 				
-				print "[CarMonitor::Storage] Saved message " + str(mid) + " to " + str(filePath)
+			except Exception as e:
+				print "[CarMonitor::Storage] Error saving message " + str(mid) + ": " + str(e)
 				
 	def sendQueuedMessages(self, carmonitor):
 		for filename in os.listdir(self.cfg['path']):
@@ -56,24 +66,25 @@ class MessageStorage():
 				with open(filePath,'r') as jsonFile:
 					try:
 						jsonData = json.load(jsonFile)
-						carmonitor.sendMessage(jsonData['topic'], jsonData['payload'], 1)
+						carmonitor.sendMessage(jsonData['topic'], jsonData['payload'], jsonData['qos'])
 						os.remove(filePath)
 					except Exception as e:
-						print "[CarMonitor::Storage] Error: " + str(e)
+						print "[CarMonitor::Storage] Error reading file: " + str(e)
 						os.remove(filePath)
 	
-	def saveMessage(self, time, mid, topic, payload):
+	def saveMessage(self, time, mid, topic, payload, qos):
 		self.messageQueue[mid] = {
 			'time': time,
 			'topic': topic,
 			'payload': payload,
+			'qos' : qos,
 			'file': None
 		}
 		
 		#print "[CarMonitor::Storage] Message " + str(mid) + " queued "
 
 	def removeMessage(self, mid):
-		if mid in self.messageQueue:
+		try:
 			message = self.messageQueue[mid]
 			
 			if message['file'] is not None:
@@ -82,8 +93,11 @@ class MessageStorage():
 				
 			del self.messageQueue[mid]
 			#print "[CarMonitor::Storage] Removed message " + str(mid)
-		else:
+			
+		except KeyError:
 			print "[CarMonitor::Storage] Unkown mid to remove " + str(mid)
+		except Exception as e:
+			print "[CarMonitor::Storage] Error while removing mid " + str(mid) + ": " + str(e)
 	
 	def generateQueueId(self):
 		m = hashlib.md5()

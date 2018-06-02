@@ -115,7 +115,7 @@ class CarMonitor():
 				return
 
 			result, mid = self.client.publish(mqttTopic, payload=mqttPayload, qos=qos, retain=True)
-			self.messageStorage.saveMessage(self.collectorTime, mid, topic, data)
+			self.messageStorage.saveMessage(self.collectorTime, mid, topic, data, qos)
 			#print "[CarMonitor::MQTT] Message " + str(mid) + " send to the broker"
 
 	def buildJsonPayload(self, data):
