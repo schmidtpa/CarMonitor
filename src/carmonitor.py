@@ -87,6 +87,7 @@ class CarMonitor():
 			
 		except Exception as e:
 			print '[CarMonitor] Error: ' + str(e)
+			self.run()
 	
 	def updateCollectorTime(self):
 		if self.gpsdData is not None:
@@ -119,14 +120,12 @@ class CarMonitor():
 			#print "[CarMonitor::MQTT] Message " + str(mid) + " send to the broker"
 
 	def buildJsonPayload(self, data):
-		message = data
-		
 		if not 'time' in data:
 			epoch = datetime.datetime.utcfromtimestamp(0)
 			timestamp = str(long((self.collectorTime - epoch).total_seconds()) * 1000)
-			message['time'] = timestamp
+			data['time'] = timestamp
 			
-		return json.dumps(message, ignore_nan=True) # https://simplejson.readthedocs.io/en/latest/#basic-usage
+		return json.dumps(data, ignore_nan=True) # https://simplejson.readthedocs.io/en/latest/#basic-usage
 	
 	def buildLinePayload(self, data, topic):
 		if 'time' in data:
