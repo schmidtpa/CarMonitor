@@ -118,7 +118,9 @@ class MessageStorage():
 			for mid in self.messageQueue.keys():
 				try:
 					message = self.messageQueue[mid]
-					self.saveQueuedMessage(mid, message)
+
+					if message.get('file') is None:
+						self.saveQueuedMessage(mid, message)
 				except KeyError:
 					print "[CarMonitor::Storage] Unkown mid to flush " + str(mid)
 
