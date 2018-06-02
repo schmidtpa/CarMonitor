@@ -13,7 +13,7 @@ import hashlib
 import uuid
 import simplejson as json
 
-class PersistentMessageQueue(): 
+class MessageStorage(): 
 	
 	def __init__(self, config):
 		self.cfg = config

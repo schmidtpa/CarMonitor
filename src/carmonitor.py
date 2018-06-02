@@ -20,9 +20,8 @@ import collector.system
 import collector.enviro
 import collector.gps
 
-import storage.queue
-
 import config as cfg
+import storage.filesystem
 
 class CarMonitor():
 	
@@ -39,7 +38,7 @@ class CarMonitor():
 		self.client.on_publish = self.onPublish
 		
 		self.isConnected = False
-		self.persistence = storage.queue.PersistentMessageQueue(cfg.storage)
+		self.messageStorage = storage.filesystem.MessageStorage(cfg.storage)
 		
 		self.collectorTime = None
 		self.collectorTimeSrc = None
@@ -61,7 +60,7 @@ class CarMonitor():
 		try: 
 			self.gpsdPoller.start()
 			self.enviroPoller.start()
-			
+
 			self.client.connect_async(cfg.server['host'], cfg.server['port'], 60)
 			self.client.loop_start()
 
@@ -74,7 +73,7 @@ class CarMonitor():
 				self.systemCollector.run(self)
 				self.enviroCollector.run(self)
 				self.gpsCollector.run(self)
-				self.persistence.run(self)
+				self.messageStorage.run(self)
 
 				time.sleep(0.5)
 
@@ -116,7 +115,7 @@ class CarMonitor():
 				return
 
 			result, mid = self.client.publish(mqttTopic, payload=mqttPayload, qos=qos, retain=True)
-			self.persistence.saveMessage(self.collectorTime, mid, topic, data)
+			self.messageStorage.saveMessage(self.collectorTime, mid, topic, data)
 			#print "[CarMonitor::MQTT] Message " + str(mid) + " send to the broker"
 
 	def buildJsonPayload(self, data):
@@ -160,7 +159,7 @@ class CarMonitor():
 	
 	def onPublish(self, client, userdata, mid):
 		#print "[CarMonitor::MQTT] Message " + str(mid) + " reached the broker"
-		self.persistence.removeMessage(mid)
+		self.messageStorage.removeMessage(mid)
 		
 	def onConnect(self, client, userdata, flags, rc):
 		if rc == mqtt.CONNACK_ACCEPTED:
