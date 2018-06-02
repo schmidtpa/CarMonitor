@@ -21,41 +21,44 @@ class MessageStorage():
 		self.messageQueue = {}
 		
 	def run(self, carmonitor):
-		self.saveQueuedMessages(carmonitor)
-		self.sendQueuedMessages(carmonitor)
+		try:
+			self.saveQueuedMessages(carmonitor)
+			self.sendQueuedMessages(carmonitor)
+		except Exception as e:
+			print "[CarMonitor::Storage] Error in MessageStorage: " + str(e)
 		
 	def saveQueuedMessages(self, carmonitor):
 		for mid in self.messageQueue.keys():
 			try:
 				message = self.messageQueue[mid]
 				
-				if not time in message:
-					message['time'] = carmonitor.collectorTime
-					
-				if not file in message:
-					message['file'] = None
-				
 				delta = carmonitor.collectorTime - message['time']
 				#print "[CarMonitor::Storage] Message " + str(mid) + " send delta " + str(delta.total_seconds())
-				
+
 				if message['file'] is None and delta.total_seconds() >= self.cfg['time']:
-					filePath = str(self.cfg['path'] + self.messageQueueId + '_' + str(mid) + '.msg')
-					
-					jsonData = {
-						'topic': message['topic'],
-						'payload': message['payload'],
-						'qos': message['qos']
-					}
-					
-					msgFile = open(filePath , "w")
-					msgFile.write(json.dumps(jsonData))
-					msgFile.close()
-					
-					self.messageQueue[mid]['file'] = filePath
-					print "[CarMonitor::Storage] Saved message " + str(mid) + " to " + str(filePath)
-				
+					self.saveQueuedMessage(mid, message)
+
 			except Exception as e:
-				print "[CarMonitor::Storage] Error saving message " + str(mid) + ": " + str(e)
+				print "[CarMonitor::Storage] Error saving mid " + str(mid) + ": " + str(e)
+				
+	def saveQueuedMessage(self, mid, message):
+		try:
+			filePath = str(self.cfg['path'] + self.messageQueueId + '_' + str(mid) + '.msg')
+			
+			jsonData = {
+				'topic': message['topic'],
+				'payload': message['payload'],
+				'qos': message['qos']
+			}
+			
+			msgFile = open(filePath , "w")
+			msgFile.write(json.dumps(jsonData))
+			msgFile.close()
+			
+			self.messageQueue[mid]['file'] = filePath
+			print "[CarMonitor::Storage] Saved message " + str(mid) + " to " + str(filePath)
+		except Exception as e:
+			print "[CarMonitor::Storage] Error saving message " + str(mid) + ": " + str(e)
 				
 	def sendQueuedMessages(self, carmonitor):
 		for filename in os.listdir(self.cfg['path']):
@@ -98,6 +101,21 @@ class MessageStorage():
 			print "[CarMonitor::Storage] Unkown mid to remove " + str(mid)
 		except Exception as e:
 			print "[CarMonitor::Storage] Error while removing mid " + str(mid) + ": " + str(e)
+			
+			
+	def flush(self):
+		try:
+			print "[CarMonitor::Storage] Flushing all messages to the storage..."
+			
+			for mid in self.messageQueue.keys():
+				try:
+					message = self.messageQueue[mid]
+					self.saveQueuedMessage(mid, message)
+				except KeyError:
+					print "[CarMonitor::Storage] Unkown mid to flush " + str(mid)
+
+		except Exception as e:
+			print "[CarMonitor::Storage] Error flushing messages: " + str(e)
 	
 	def generateQueueId(self):
 		m = hashlib.md5()

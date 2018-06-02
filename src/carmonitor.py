@@ -80,6 +80,7 @@ class CarMonitor():
 		except(KeyboardInterrupt, SystemExit):
 			print '[CarMonitor] Stopping...'
 			self.client.loop_stop()
+			self.messageStorage.flush()
 			self.enviroPoller.join()
 			self.gpsdPoller.join()
 			print '[CarMonitor] Stopped'
