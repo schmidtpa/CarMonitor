@@ -113,7 +113,7 @@ class MessageStorage():
 			
 	def flush(self):
 		try:
-			print "[CarMonitor::Storage] Flushing all messages to the storage..."
+			print "[CarMonitor::Storage] Flushing " + str(len(self.messageQueue)) + " messages to the storage..."
 			
 			for mid in self.messageQueue.keys():
 				try:
