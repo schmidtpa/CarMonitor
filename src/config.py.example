@@ -40,9 +40,8 @@ client = {
 	'prot': 'influx'		# Protocol used (json = JSON or influx = InfluxDB Line Protocol)
 }
 
-# Persistent storage options
+# Storage options
 storage = {
-	'time': 60,								# Time for messages to stay in the in-memory queue until they are written to the storage
-	'path': '/opt/carmonitor/messages/',	# Path where to store the messages
-	'fail': '/opt/carmonitor/errors/'		# Path where to store failed messages
+	'time': 15,								# time for messages to stay in the in-memory queue until they are written to the storage
+	'path': '/opt/carmonitor/messages/',	# path where messages are stored
 }
