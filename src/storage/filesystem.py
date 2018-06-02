@@ -59,9 +59,8 @@ class MessageStorage():
 						carmonitor.sendMessage(jsonData['topic'], jsonData['payload'], 1)
 						os.remove(filePath)
 					except Exception as e:
-						os.rename(filePath, self.cfg['fail'] + filename)
 						print "[CarMonitor::Storage] Error: " + str(e)
-						print "[CarMonitor::Storage] Moved failed message " + str(filePath)
+						os.remove(filePath)
 	
 	def saveMessage(self, time, mid, topic, payload):
 		self.messageQueue[mid] = {
