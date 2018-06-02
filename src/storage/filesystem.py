@@ -56,7 +56,7 @@ class MessageStorage():
 			msgFile.close()
 			
 			self.messageQueue[mid]['file'] = filePath
-			print "[CarMonitor::Storage] Saved message " + str(mid) + " to " + str(filePath)
+			# print "[CarMonitor::Storage] Saved message " + str(mid) + " to " + str(filePath)
 		except Exception as e:
 			print "[CarMonitor::Storage] Error saving message " + str(mid) + ": " + str(e)
 				
@@ -67,7 +67,7 @@ class MessageStorage():
 			
 			if not filename.startswith(self.messageQueueId):
 				filePath = self.cfg['path'] + filename
-				print "[CarMonitor::Storage] Sending stored message " + str(filePath)
+				# print "[CarMonitor::Storage] Sending stored message " + str(filePath)
 				
 				with open(filePath,'r') as jsonFile:
 					try:
@@ -80,7 +80,7 @@ class MessageStorage():
 						os.remove(filePath)
 						
 			if sendCounter > 50:
-				print "[CarMonitor::Storage] Reached send counter (50) breaking"
+				print "[CarMonitor::Storage] Reached maximum of 50 messages to send"
 				break
 	
 	def saveMessage(self, time, mid, topic, payload, qos):
@@ -100,7 +100,7 @@ class MessageStorage():
 			
 			if message['file'] is not None:
 				os.remove(message['file'])
-				print "[CarMonitor::Storage] Removed message " + str(mid) + " from " + message['file']
+				# print "[CarMonitor::Storage] Removed message " + str(mid) + " from " + message['file']
 				
 			del self.messageQueue[mid]
 			#print "[CarMonitor::Storage] Removed message " + str(mid)

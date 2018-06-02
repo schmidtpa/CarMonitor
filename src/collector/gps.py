@@ -43,19 +43,19 @@ class GpsCollector():
 		self.updateTimeDelta = carmonitor.collectorTime - self.updateTime
 
 		if self.updateTimeDelta.total_seconds() >= self.cfg['timedelta']:
-			print '[Collector::GPS] Reached time threshold (' + str(self.cfg['timedelta']) + ' s): ' + str(self.updateTimeDelta.total_seconds())
+			# print '[Collector::GPS] Reached time threshold (' + str(self.cfg['timedelta']) + ' s): ' + str(self.updateTimeDelta.total_seconds())
 			self.update = True
 			
 		# check speed
 		if carmonitor.gpsdData['speed'] >= self.cfg['speed']:
-			print '[Collector::GPS] Reached min speed threshold (' + str(self.cfg['speed']) + ' m/s): ' + str(carmonitor.gpsdData['speed']) + ' m/s'
+			# print '[Collector::GPS] Reached min speed threshold (' + str(self.cfg['speed']) + ' m/s): ' + str(carmonitor.gpsdData['speed']) + ' m/s'
 			self.update = True
 			
 		# check distance
 		gpsdDistance = self.distance(carmonitor.gpsdData['lat'], carmonitor.gpsdData['lon'], self.lastGpsdData['lat'], self.lastGpsdData['lat'])
 		
 		if gpsdDistance >= self.cfg['distance']:
-			print '[Collector::GPS] Reached max distance threshold (' + str(self.cfg['distance']) + ' m):  ' + str(gpsdDistance) +  'm'
+			# print '[Collector::GPS] Reached max distance threshold (' + str(self.cfg['distance']) + ' m):  ' + str(gpsdDistance) +  'm'
 			self.update = True
 		
 		# process a gps status update and send the new data
