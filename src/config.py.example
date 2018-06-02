@@ -43,5 +43,5 @@ client = {
 # Storage options
 storage = {
 	'time': 15,								# time for messages to stay in the in-memory queue until they are written to the storage
-	'path': '/opt/carmonitor/messages/',	# path where messages are stored
+	'path': '/opt/carmonitor/messages/'	# path where messages are stored
 }

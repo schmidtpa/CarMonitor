@@ -23,7 +23,7 @@ class MessageStorage():
 	def run(self, carmonitor):
 		try:
 			self.saveQueuedMessages(carmonitor)
-			self.sendQueuedMessages(carmonitor)
+			self.sendStoredMessages(carmonitor)
 		except Exception as e:
 			print "[CarMonitor::Storage] Error in MessageStorage: " + str(e)
 		
@@ -60,8 +60,11 @@ class MessageStorage():
 		except Exception as e:
 			print "[CarMonitor::Storage] Error saving message " + str(mid) + ": " + str(e)
 				
-	def sendQueuedMessages(self, carmonitor):
+	def sendStoredMessages(self, carmonitor):
+		sendCounter = 0
+
 		for filename in os.listdir(self.cfg['path']):
+			
 			if not filename.startswith(self.messageQueueId):
 				filePath = self.cfg['path'] + filename
 				print "[CarMonitor::Storage] Sending stored message " + str(filePath)
@@ -71,9 +74,14 @@ class MessageStorage():
 						jsonData = json.load(jsonFile)
 						carmonitor.sendMessage(jsonData['topic'], jsonData['payload'], jsonData['qos'])
 						os.remove(filePath)
+						sendCounter = sendCounter + 1
 					except Exception as e:
 						print "[CarMonitor::Storage] Error reading file: " + str(e)
 						os.remove(filePath)
+						
+			if sendCounter > 50:
+				print "[CarMonitor::Storage] Reached send counter (50) breaking"
+				break
 	
 	def saveMessage(self, time, mid, topic, payload, qos):
 		self.messageQueue[mid] = {
