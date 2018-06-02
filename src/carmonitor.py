@@ -115,7 +115,10 @@ class CarMonitor():
 				return
 
 			result, mid = self.client.publish(mqttTopic, payload=mqttPayload, qos=qos, retain=True)
-			self.messageStorage.saveMessage(self.collectorTime, mid, topic, data, qos)
+			
+			if qos > 0:
+				self.messageStorage.saveMessage(self.collectorTime, mid, topic, data, qos)
+				
 			#print "[CarMonitor::MQTT] Message " + str(mid) + " send to the broker"
 
 	def buildJsonPayload(self, data):
@@ -164,7 +167,7 @@ class CarMonitor():
 	def onConnect(self, client, userdata, flags, rc):
 		if rc == mqtt.CONNACK_ACCEPTED:
 			print "[CarMonitor::MQTT] Connected to " + cfg.server['host'] + ":" + str(cfg.server['port'])
-			self.client.publish('car/' + cfg.client['id'] + '/status', payload='{ "online": 1 }', qos=2, retain=False)
+			self.client.publish('car/' + cfg.client['id'] + '/status', payload='{ "online": 1 }', qos=0, retain=False)
 			self.isConnected = True
 		else:
 			print "[CarMonitor::MQTT] Connection returned result: " + mqtt.connack_string(rc)
