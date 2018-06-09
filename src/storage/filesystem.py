@@ -61,9 +61,7 @@ class MessageStorage():
 			print "[CarMonitor::Storage] Error saving message " + str(mid) + ": " + str(e)
 				
 	def sendStoredMessages(self, carmonitor):
-		print "[CarMonitor::Storage] Sending stored messages..."
 		sendCounter = 0
-
 		for filename in os.listdir(self.cfg['path']):
 			
 			if not filename.startswith(self.messageQueueId):

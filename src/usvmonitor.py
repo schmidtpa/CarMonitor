@@ -30,13 +30,13 @@ try:
 		Current_State = GPIO.input(GPIO_TPIN)
 		
 		if Current_State == 1:
-			print "[USVMonitor] Running on backup power (" + str(counter) + "/600)"
+			print "[USVMonitor] Running on backup power (" + str(counter) + "/3)"
 			counter = counter + 1
 		else:
-			print "[USVMonitor] Running on main power (0/600)"
+			print "[USVMonitor] Running on main power (0/3)"
 			counter = 0
 			
-		if counter >= 30:
+		if counter >= 3:
 			print "[USVMonitor] Shutting down..."
 			time.sleep(1.0)
 			os.system("sudo shutdown -h now")
