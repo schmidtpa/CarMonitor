@@ -39,7 +39,7 @@ try:
 		if counter >= 3:
 			print "[USVMonitor] Shutting down..."
 			time.sleep(1.0)
-			os.system("sudo shutdown -h now")
+			os.system("sudo shutdown -P now")
 			break
 			
 		time.sleep(10.0)
