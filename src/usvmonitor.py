@@ -17,35 +17,14 @@ GPIO_TPIN = 21												# select pin 21
 GPIO.setup(GPIO_TPIN,GPIO.IN,pull_up_down = GPIO.PUD_DOWN)	# set as input
 
 try:
-	print "[USVMonitor] Waiting for StromPiV2 to initialize..."
+	print "[USVMonitor] Started StromPiV2"
 	
-	while GPIO.input(GPIO_TPIN)==1:
-		pass
-		
-	print "[USVMonitor] StromPiV2 ready!"
+	while GPIO.input(GPIO_TPIN) == 0:
+		time.sleep(5.0)
 	
-	counter = 0
+	print "[USVMonitor] Shutting down..."
+	os.system("sudo shutdown -P now")
 	
-	while True :
-		Current_State = GPIO.input(GPIO_TPIN)
-		
-		if Current_State == 1:
-			print "[USVMonitor] Running on backup power (" + str(counter) + "/3)"
-			counter = counter + 1
-		else:
-			print "[USVMonitor] Running on main power (0/3)"
-			counter = 0
-			
-		if counter >= 3:
-			print "[USVMonitor] Shutting down..."
-			time.sleep(1.0)
-			os.system("sudo shutdown -P now")
-			break
-			
-		time.sleep(10.0)
-		
-	print "[USVMonitor] Stopped monitoring script due power outage."
-
 except KeyboardInterrupt:
 	print "[USVMonitor] Stopped on user request."
 	
