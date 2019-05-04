@@ -52,7 +52,7 @@ class GpsCollector():
 			self.update = True
 			
 		# check distance
-		gpsdDistance = self.distance(carmonitor.gpsdData['lat'], carmonitor.gpsdData['lon'], self.lastGpsdData['lat'], self.lastGpsdData['lat'])
+		gpsdDistance = self.distance(carmonitor.gpsdData['lat'], carmonitor.gpsdData['lon'], self.lastGpsdData['lat'], self.lastGpsdData['lon'])
 		
 		if gpsdDistance >= self.cfg['distance']:
 			# print '[Collector::GPS] Reached max distance threshold (' + str(self.cfg['distance']) + ' m):  ' + str(gpsdDistance) +  'm'
